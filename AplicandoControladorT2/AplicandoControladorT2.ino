@@ -77,7 +77,11 @@ void loop(){
   float L = ; // Ganho do observador
 
   // Soft-start
-  analogWrite(VelocidadePin, un);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
+  analogWrite(VelocidadePin, R);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
+
+  delay(3000); // Espaço de tempo para que o sistema atinja o regime permanente
+
+  R  = 205; // Pequeno incremento da referência para continuar na região linear projetada
 
   while(micros() <= Duracao_Resposta){
     en = R - yn;                              
