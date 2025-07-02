@@ -20,31 +20,26 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
     e_log     = zeros(N, 1);
     e_hat_log = zeros(N, 1);
 
-
-    xn_1     = 0;
-    ek       = R - 0;
-    x_k      = 0;  % estado real
-    x_hat_k  = 0;  % estado estimado
+    ek        = R - 0;
+    e_hat_k   = 0;
+    x_k       = 0;  % estado real
+    x_hat_k   = 0;  % estado estimado
+    xn_k      = 0;
+    y_k       = 0;
+    u_k       = 0;
     for k = 1:N
         % Atualiza integrador
         xn_k = xn_k + Ts * ek;
 
-        % Controle com estado estimado
-        u_k = -K * x_hat_k + Ki * xn_k; 
-
-        % Aplica no sistema real
-        x_k = sys.A * x_k + sys.B * u_k;
-        y_k = sys.C * x_k + sys.D * u_k;
-
         % Estimação da saída
         y_hat_k = sys.C * x_hat_k + sys.D * u_k;
-
-        % Atualiza o observador
+        
+        % Atualiza o estado estimado pelo observador
+        % x_hat_k = sys.A * x_hat_k + sys.B * u_k + L * (y_k - y_hat_k);
         x_hat_k = ((sys.A - L * sys.C) * x_hat_k) + (sys.B * u_k) + (L * y_k);
 
-        % Atualiza o erro 
-        ek = R - y_k;
-        e_hat_k = x_k - x_hat_k;
+        % Controle com estado estimado
+        u_k = -K * x_hat_k + Ki * xn_k; 
 
         % Armazena
         x_log(k, :)     = x_k';
@@ -55,6 +50,14 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
         e_log(k)        = ek; 
         e_hat_log(k)    = e_hat_k; 
 
+        % Evolução do sistema
+        x_k = sys.A * x_k + sys.B * u_k;
+        y_k = sys.C * x_k + sys.D * u_k;
+
+
+        % Atualiza o erro 
+        ek = R - y_k;
+        e_hat_k = x_k - x_hat_k;
     end
 
     % Vetor de tempo

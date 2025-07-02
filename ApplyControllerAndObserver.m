@@ -22,7 +22,6 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
 
     ek        = R - 0;
     e_hat_k   = 0;
-    y_hat_k   = 0;
     x_k       = 0;  % estado real
     x_hat_k   = 0;  % estado estimado
     xn_k      = 0;
@@ -32,14 +31,12 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
         % Atualiza integrador
         xn_k = xn_k + Ts * ek;
 
-        % Atualiza o observador
-        % x_hat_k = ((sys.A - L * sys.C) * x_hat_k) + (sys.B * u_k) + (L * y_k);
-
         % Estimação da saída
         y_hat_k = sys.C * x_hat_k + sys.D * u_k;
         
-        % Atualiza o observador corretamente
-        x_hat_k = sys.A * x_hat_k + sys.B * u_k + L * (y_k - y_hat_k);
+        % Atualiza o estado estimado pelo observador
+        % x_hat_k = sys.A * x_hat_k + sys.B * u_k + L * (y_k - y_hat_k);
+        x_hat_k = ((sys.A - L * sys.C) * x_hat_k) + (sys.B * u_k) + (L * y_k);
 
         % Controle com estado estimado
         u_k = -K * x_hat_k + Ki * xn_k; 
@@ -67,7 +64,7 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
     t = (0:N-1) * Ts;
 
     % Figura com 4 subplots
-    figure('Name', sprintf('Comparação entre sistema e observador (%s)', metodo), 'NumberTitle','off');
+    f = figure('Name', sprintf('Comparação entre sistema e observador (%s)', metodo), 'NumberTitle','off');
 
     % 1. Saída y vs y_hat
     subplot(2,2,1);
@@ -100,4 +97,7 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
     title('Erro de estimação: ê₁ = x₁ - x̂₁');
     xlabel('Tempo (s)'); ylabel('Erro de estimação');
     grid on;
+
+    sgtitle(sprintf('Comparação entre sistema e observador (%s)', metodo), 'Interpreter', 'latex');
+    exportgraphics(f, sprintf('./Resultados/ControllerAndObserver{%s}.pdf', metodo), 'ContentType', 'vector');
 end
