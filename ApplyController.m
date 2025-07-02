@@ -2,7 +2,6 @@ function [y_log, u_log, x_log] = ApplyController(sys, K, Ki, N, R, Ts)
 % Aplica o controlador por realimentação de estados discretizado
 % sys    : sistema em espaço de estados discretizado (ss)
 % K_hat  : vetor linha de ganhos (pode ser [K  -Ki] se for sistema aumentado)
-% x0     : vetor de estado inicial
 % N      : número de passos de simulação
 
     % Inicializações

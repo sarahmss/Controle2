@@ -56,7 +56,6 @@ void PrintOut(float un, float en, float yn)
     // saida 
     Serial.print(yn); 
     Serial.println("/");
-
 }
 
 /*
