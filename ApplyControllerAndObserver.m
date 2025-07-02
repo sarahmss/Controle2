@@ -38,7 +38,7 @@ function [y_log, y_hat_log, u_log, x_log, x_hat_log] = ApplyControllerAndObserve
         % x_hat_k = sys.A * x_hat_k + sys.B * u_k + L * (y_k - y_hat_k);
         x_hat_k = ((sys.A - L * sys.C) * x_hat_k) + (sys.B * u_k) + (L * y_k);
 
-        % Controle com estado estimado
+        % Lei de controle com estado estimado
         u_k = -K * x_hat_k + Ki * xn_k; 
 
         % Armazena

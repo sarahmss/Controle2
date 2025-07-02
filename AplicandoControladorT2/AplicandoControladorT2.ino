@@ -18,10 +18,6 @@ void setup(){
   // Essas configurações tem que ser mantida, para não ter entrada negativa no arduino
   digitalWrite(Rotacao1Pin, HIGH);
   digitalWrite(Rotacao2Pin, LOW);
-
-  // Variáveis gerais
-
-  Serial.print("Tempo,Entrada,Erro,Saida/");
 }
 
 void PrintOut(float un, float en, float yn)
@@ -46,36 +42,55 @@ void PrintOut(float un, float en, float yn)
 
 /*
   @brief: 
-    Função para aplicar um filtro digital e 
-    um controlador no sistema de malha fechada
-  @param:
-    — u: Valor da entrada degrau do sistema
-    — u_c: Entrada do controlador u[n]
-    — un_1: Valor passado da entrada do controlador u[n-1]
-    — y: Saída do controlador y[n]
-    — e: Erro do sistema e[n]
-    — en_1: Valor passado do erro do sistema e[n-1]
+    Função principal que implementa um controlador por realimentação de estados com ação integral, 
+    em conjunto com um observador de estado. A função estima o estado interno do sistema, 
+    calcula a saída estimada e aplica a lei de controle para seguir uma referência constante.
+
+  @variáveis principais:
+    — T     : Período de amostragem do sistema discreto
+    — Ad    : matriz A do modelo discreto (escalares no caso SISO)
+    — Bd    : matriz B do modelo discreto
+    — Cd    : matriz C do modelo discreto
+    — Dd    : matriz D do modelo discreto
+
+    — K     : Ganho da realimentação de estados
+    — Ki    : Ganho do integrador (ação integral)
+    — L     : Ganho do observador contínuo
+    — Ld    : Ganho do observador discreto (Ld = L * T)
+
+    — R     : Referência desejada (setpoint)
+    — uk    : Entrada de controle aplicada ao sistema
+    — yk    : Saída real do sistema (medida)
+    — xhat  : Estado estimado pelo observador
+    — xnk   : Estado do integrador (acumulador do erro)
+    — yhat  : Saída estimada pelo observador
+    — ek    : Erro entre a referência e a saída real (ek = R - yk)
+    — ehat  : Erro de estimação do estado (ehat = xk - xhat)
 */
+
 void loop(){
+ // Definindo e inicializando as variáveis
+  float T = 0.008;  // Tempo de amostragem
+  float Ad = 0.8802; // Matriz A do sistema discretizado
+  float Bd = 0.008;  // Matriz B do sistema discretizado
+  float Cd = 10480;  // Matriz C do sistema discretizado
+  float Dd = 0;  // Matriz C do sistema discretizado
 
-  // Definindo e inicializando as variáveis
-  int R = 200;
-  float  en = 0, en_1 = 0;              
-  float  un = R;
-  float  un_1 = 0;
-  float  yn = 0, yn_1 = 0;
-  float  x_hat, x_hat_1 = 0;
-  float  xn, xn_1 = 0;
-
-  float T = 0.008; // Tempo de amostragem
-  float A = 0.8802; // Matriz A do sistema discretizado
-  float B = 0.008; // Matriz B do sistema discretizado
-  float C = 10480; // Matriz C do sistema discretizado
-
-  float K = -9.6367; // Ganho do controlador
-  float Ki = 0.0022; // Ganho do integrador
-  float L = 0.004; // Ganho do observador
-
+  float K = -9.6367;  // Ganho do controlador
+  float Ki = 0.0022;  // Ganho do integrador
+  float L = 0.004;    // Ganho do observador
+  float Ld = L * T;    // Ganho do observador
+  
+  int    R    = 200;
+  float  uk   = 0;
+  float  yk   = 0;
+  float  xk   = 0;
+  float  xhat = 0;
+  float  xnk  = 0;
+  float  yhat = 0;
+  float  ehat = 0;
+  float  ek   = R - yk; 
+  
   // Soft-start
   analogWrite(VelocidadePin, R);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
 
@@ -83,29 +98,29 @@ void loop(){
 
   R = 205; // Pequeno incremento da referência para continuar na região linear projetada
 
+  Serial.print("Tempo,Entrada,Erro,Saida/");
   while(micros() <= Duracao_Resposta){
-    en = R - yn;                              
+    // Atualização do estado associado ao integrador
+    xnk = xnk + (T * ek);
 
-    // Aplicando o controlador
-    x_hat = (T*A + T*C + 1)*x_hat_1 + (T*B)*un_1 + (T*L)*yn_1;
-    xn = xn_1 + (T)*en_1;
+    // Estimação da saída
+    yhat = Cd * xhat + Dd * uk;
 
-    un = -(K)*x_hat + (Ki)*xn;
+    // Atualização do estado estimado pelo observador
+    xhat = ((Ad - Ld*Cd)*xhat) + (Bd * uk)+ (Ld * yk);
+    
+    // Lei de controle com estado estimado
+    uk = -(K)*xhat + (Ki)*xnk;
 
-    un = un > 255 ? 255 : un;
-    un = un < 0 ? 0 : un;
+    uk = uk > 255 ? 255 : uk;
+    uk = uk < 0 ? 0 : uk;
 
     analogWrite(VelocidadePin, un);  // Ativa o motor com a nova entrada
     yn = analogRead(Tensao_Gerador); // Valor da saída
     PrintOut(un, en, yn);
 
-    // Guardando as variáveis antes de sofrerem alteração (iteração passada x1 = [x-1])
-    un_1 = un;
-    en_1 = en;  
-
-    x_hat_1 = x_hat;
-    xn_1 = xn;
-
+    ek = R - yk;
+    ehat = xk - xhat;  
     _delay_us(5800);
   }
   // Desativa o motor
