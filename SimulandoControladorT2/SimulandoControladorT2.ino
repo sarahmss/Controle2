@@ -24,38 +24,24 @@ void setup(){
   Serial.print("Tempo,Entrada,Erro,Saida/");
 }
 
-float System(float un, float un_1, float xn_1)
-{
-  float A = 0.8802; // Matriz A do sistema discretizado
-  float B = 0.008; // Matriz B do sistema discretizado
-  float C = 10480; // Matriz C do sistema discretizado
-
-  float xn = 0;
-  float yn = 0;
-
-  xn = A*xn_1 + B*un_1;
-  yn = C*xn;
-
-  return (yn);
-}
-
-void PrintOut(float un, float en, float yn)
+void PrintOut(float uk, float ek, float yk)
 {
     // Tempo percorrido
     Serial.print(micros());
     Serial.print(",");
 
     // Entrada da planta
-    Serial.print(un); 
+    Serial.print(uk); 
     Serial.print(",");
 
     // erro
-    Serial.print(en);  
+    Serial.print(ek);  
     Serial.print(",");
 
     // saida 
-    Serial.print(yn); 
+    Serial.print(yk); 
     Serial.println("/");
+
 }
 
 /*
@@ -63,23 +49,47 @@ void PrintOut(float un, float en, float yn)
     Função para aplicar um filtro digital e 
     um controlador no sistema de malha fechada
   @param:
-    — u: Valor da entrada degrau do sistema
-    — u_c: Entrada do controlador u[n]
-    — un_1: Valor passado da entrada do controlador u[n-1]
+    — uk: Valor da entrada degrau do sistema
+    — uk_c: Entrada do controlador u[n]
+    — uk_1: Valor passado da entrada do controlador u[n-1]
     — y: Saída do controlador y[n]
-    — e: Erro do sistema e[n]
-    — en_1: Valor passado do erro do sistema e[n-1]
+    — ek: Erro do sistema e[n]
+    — ek_1: Valor passado do erro do sistema e[n-1]
 */
+
+float System1(float uk_1, float yk_1)
+{
+
+  return (79.01*uk_1 + 0.8871*yk_1);
+
+}
+
+float System(float uk_1, float xk_1)
+{
+  float A = 0.8802; // Matriz A do sistema discretizado
+  float B = 0.008; // Matriz B do sistema discretizado
+  float C = 10480; // Matriz C do sistema discretizado
+
+  float xk = 0;
+  float yk = 0;
+
+  xk = A*xk_1 + B*uk_1;
+  yk = C*xk;
+
+  return (yk);
+}
+
 void loop(){
 
   // Definindo e inicializando as variáveis
   int R = 200;
-  float  en = 0, en_1 = 0;              
-  float  un = R;
-  float  un_1 = 0;
-  float  yn = 0, yn_1 = 0;
+  float  ek = 0, ek_1 = 0;              
+  float  uk = R;
+  float  uk_1 = 0;
+  float  yk = 0, yk_1 = 0;
+
   float  x_hat, x_hat_1 = 0;
-  float  xn, xn_1 = 0;
+  float  xnk, xnk_1 = 0;
 
   float T = 0.008; // Tempo de amostragem
   float A = -14.97; // Matriz A do sistema
@@ -98,30 +108,31 @@ void loop(){
   //R = 205; // Pequeno incremento da referência para continuar na região linear projetada
 
   while(micros() <= Duracao_Resposta){
-    en = R - yn;                              
+    ek = R - yk;                              
 
     // Aplicando o controlador
-    x_hat = (T*A + T*C + 1)*x_hat_1 + (T*B)*un_1 + (T*L)*yn_1;
-    xn = xn_1 + (T)*en_1;
+    x_hat = (T*A - T*L*C + 1)*x_hat_1 + (T*B)*uk_1 + (T*L)*yk_1;
+    xnk = xnk_1 + (T)*ek_1;
 
-    un = -(K)*x_hat + (Ki)*xn;
+    uk = -(K)*x_hat + (Ki)*xnk;
 
-    un = un > 255 ? 255 : un;
-    un = un < 0 ? 0 : un;
+    uk = uk > 255 ? 255 : uk;
+    uk = uk < 0 ? 0 : uk;
 
-    //analogWrite(VelocidadePin, un);  // Ativa o motor com a nova entrada
-    //yn = analogRead(Tensao_Gerador); // Valor da saída
+    //analogWrite(VelocidadePin, uk);  // Ativa o motor com a nova entrada
+    //yk = analogRead(Tensao_Gerador); // Valor da saída
 
-    yn = System(un, un_1, xn_1);
+    //yk = System(uk_1, x_hat_1);
+    yk = System1(uk_1, yk_1);
 
-    PrintOut(un, en, yn);
+    PrintOut(uk, ek, yk);
 
     // Guardando as variáveis antes de sofrerem alteração (iteração passada xn_1 = x[n-1])
-    un_1 = un;
-    en_1 = en;  
+    uk_1 = uk;
+    ek_1 = ek;  
 
     x_hat_1 = x_hat;
-    xn_1 = xn;
+    xnk_1 = xnk;
 
     _delay_us(5800);
   }
