@@ -11,10 +11,10 @@ function [y_log, u_log, x_log] = ApplyController(sys, K, Ki, N, R, Ts)
 
     y_k = 0;
     x_k = 0;
-    xn_1 = 0;
-    ek_1 = R - y_k;
+    ek = R - y_k;
+    xn = 0;
     for k = 1:N
-        xn = xn_1 + Ts * ek_1;
+        xn = xn + Ts * ek;
 
         u_k = -K * x_k + Ki * xn;  % Lei de controle
         y_k = sys.C * x_k + sys.D * u_k;
@@ -26,7 +26,6 @@ function [y_log, u_log, x_log] = ApplyController(sys, K, Ki, N, R, Ts)
 
         % Evolução do sistema
         x_k = sys.A * x_k + sys.B * u_k;
-        ek_1 = R - y_k;
-        xn_1 = xn;
+        ek = R - y_k;
     end
 end
