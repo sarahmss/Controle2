@@ -24,6 +24,21 @@ void setup(){
   Serial.print("Tempo,Entrada,Erro,Saida/");
 }
 
+float System(float un, float un_1, float xn_1)
+{
+  float A = 0.8802; // Matriz A do sistema discretizado
+  float B = 0.008; // Matriz B do sistema discretizado
+  float C = 10480; // Matriz C do sistema discretizado
+
+  float xn = 0;
+  float yn = 0;
+
+  xn = A*xn_1 + B*un_1;
+  yn = C*xn;
+
+  return (yn);
+}
+
 void PrintOut(float un, float en, float yn)
 {
     // Tempo percorrido
@@ -40,7 +55,7 @@ void PrintOut(float un, float en, float yn)
 
     // saida 
     Serial.print(yn); 
-    Serial.print("/");
+    Serial.println("/");
 
 }
 
@@ -68,20 +83,20 @@ void loop(){
   float  xn, xn_1 = 0;
 
   float T = 0.008; // Tempo de amostragem
-  float A = 0.8802; // Matriz A do sistema discretizado
-  float B = 0.008; // Matriz B do sistema discretizado
-  float C = 10480; // Matriz C do sistema discretizado
+  float A = -14.97; // Matriz A do sistema
+  float B = 1; // Matriz B do sistema
+  float C = 10479; // Matriz C do sistema
 
   float K = -9.6367; // Ganho do controlador
   float Ki = 0.0022; // Ganho do integrador
   float L = 0.004; // Ganho do observador
 
   // Soft-start
-  analogWrite(VelocidadePin, R);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
+  //analogWrite(VelocidadePin, R);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
 
-  delay(3000); // Espaço de tempo para que o sistema atinja o regime permanente
+  //delay(3000); // Espaço de tempo para que o sistema atinja o regime permanente
 
-  R = 205; // Pequeno incremento da referência para continuar na região linear projetada
+  //R = 205; // Pequeno incremento da referência para continuar na região linear projetada
 
   while(micros() <= Duracao_Resposta){
     en = R - yn;                              
@@ -95,11 +110,14 @@ void loop(){
     un = un > 255 ? 255 : un;
     un = un < 0 ? 0 : un;
 
-    analogWrite(VelocidadePin, un);  // Ativa o motor com a nova entrada
-    yn = analogRead(Tensao_Gerador); // Valor da saída
+    //analogWrite(VelocidadePin, un);  // Ativa o motor com a nova entrada
+    //yn = analogRead(Tensao_Gerador); // Valor da saída
+
+    yn = System(un, un_1, xn_1);
+
     PrintOut(un, en, yn);
 
-    // Guardando as variáveis antes de sofrerem alteração (iteração passada x1 = [x-1])
+    // Guardando as variáveis antes de sofrerem alteração (iteração passada xn_1 = x[n-1])
     un_1 = un;
     en_1 = en;  
 
@@ -109,5 +127,5 @@ void loop(){
     _delay_us(5800);
   }
   // Desativa o motor
-  analogWrite(VelocidadePin, LOW); 
+  //analogWrite(VelocidadePin, LOW); 
 }
