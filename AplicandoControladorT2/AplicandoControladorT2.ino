@@ -3,7 +3,7 @@
 #define Rotacao2Pin 11 // Jumper Preto
 #define Tensao_Gerador A0 
 
-#define Duracao_Resposta 3000000 // [us] -> 10 [s]
+#define Duracao_Resposta 3000000 // [us] -> 3 [s]
 
 int monitor = 0;
 
@@ -18,6 +18,7 @@ void setup(){
   // Essas configurações tem que ser mantida, para não ter entrada negativa no arduino
   digitalWrite(Rotacao1Pin, HIGH);
   digitalWrite(Rotacao2Pin, LOW);
+  Serial.print("Tempo,Entrada,Erro,Saida/");
 }
 
 void PrintOut(float un, float en, float yn)
@@ -71,17 +72,17 @@ void PrintOut(float un, float en, float yn)
 void loop(){
  // Definindo e inicializando as variáveis
   float T = 0.008;  // Tempo de amostragem
-  float Ad = 0.8802; // Matriz A do sistema discretizado
+  float Ad = 0.9891; // Matriz A do sistema discretizado
   float Bd = 0.008;  // Matriz B do sistema discretizado
-  float Cd = 10480;  // Matriz C do sistema discretizado
+  float Cd = 197.9;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = -9.6367;  // Ganho do controlador
-  float Ki = 0.0022;  // Ganho do integrador
-  float L = 0.004;    // Ganho do observador
+  float K = 4.0032;  // Ganho do controlador
+  float Ki = 0.1179;  // Ganho do integrador
+  float L = 0.1414;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
-  
-  int    R    = 200;
+ 
+  int R = 156;
   float  uk   = 0;
   float  yk   = 0;
   float  xk   = 0;
@@ -91,18 +92,21 @@ void loop(){
   float  ehat = 0;
   float  ek   = R - yk; 
   
-  // Soft-start
-  analogWrite(VelocidadePin, R);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
+  while(micros() <= (Duracao_Resposta / 10)){
+    // Soft-start
+    analogWrite(VelocidadePin, R);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
+    // yk = analogRead(Tensao_Gerador); // Valor da saída
+    // ek = R - yk;
+    // PrintOut(R, ek, yk);
+    _delay_us(5800);
+  }
 
-  delay(3000); // Espaço de tempo para que o sistema atinja o regime permanente
+  R = R + 10; // Pequeno incremento da referência para continuar na região linear projetada
 
-  R = 205; // Pequeno incremento da referência para continuar na região linear projetada
-
-  Serial.print("Tempo,Entrada,Erro,Saida/");
   while(micros() <= Duracao_Resposta){
     // Atualização do estado associado ao integrador
     xnk = xnk + (T * ek);
-
+  
     // Estimação da saída
     yhat = Cd * xhat + Dd * uk;
 
@@ -115,9 +119,9 @@ void loop(){
     uk = uk > 255 ? 255 : uk;
     uk = uk < 0 ? 0 : uk;
 
-    analogWrite(VelocidadePin, un);  // Ativa o motor com a nova entrada
-    yn = analogRead(Tensao_Gerador); // Valor da saída
-    PrintOut(un, en, yn);
+    analogWrite(VelocidadePin, uk);  // Ativa o motor com a nova entrada
+    yk = analogRead(Tensao_Gerador); // Valor da saída
+    PrintOut(uk, ek, yk);
 
     ek = R - yk;
     ehat = xk - xhat;  

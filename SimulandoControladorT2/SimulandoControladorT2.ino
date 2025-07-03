@@ -18,6 +18,9 @@ void setup(){
   // Essas configurações tem que ser mantida, para não ter entrada negativa no arduino
   digitalWrite(Rotacao1Pin, HIGH);
   digitalWrite(Rotacao2Pin, LOW);
+
+  Serial.print("Tempo,Entrada,Erro,Saida/");
+
 }
 
 void PrintOut(float uk, float ek, float yk)
@@ -69,19 +72,19 @@ void PrintOut(float uk, float ek, float yk)
 */
 
 void loop(){
-  // Definindo e inicializando as variáveis
+ // Definindo e inicializando as variáveis
   float T = 0.008;  // Tempo de amostragem
-  float Ad = 0.8802; // Matriz A do sistema discretizado
+  float Ad = 0.9891; // Matriz A do sistema discretizado
   float Bd = 0.008;  // Matriz B do sistema discretizado
-  float Cd = 10480;  // Matriz C do sistema discretizado
+  float Cd = 197.9;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = -9.6367;  // Ganho do controlador
-  float Ki = 0.0022;  // Ganho do integrador
-  float L = 0.004;    // Ganho do observador
+  float K = 4.0032;  // Ganho do controlador
+  float Ki = 0.1179;  // Ganho do integrador
+  float L = 0.1414;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
-  
-  int    R    = 700;
+ 
+  int R = 156;
   float  uk   = 0;
   float  yk   = 0;
   float  xk   = 0;
@@ -91,7 +94,6 @@ void loop(){
   float  ehat = 0;
   float  ek   = R - yk;                              
 
-  Serial.print("Tempo,Entrada,Erro,Saida/");
   while(micros() <= Duracao_Resposta){
     // Atualização do estado associado ao integrador
     xnk = xnk + (T * ek);
