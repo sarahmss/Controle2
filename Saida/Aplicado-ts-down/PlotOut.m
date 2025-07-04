@@ -86,5 +86,7 @@ h = legend(legendas, ...
     'Interpreter', 'latex', ...
     'Location', 'best');
 
+sgtitle('Resposta do sistema real - Controlador aplicado', 'Interpreter', 'latex');
+
 % Exporta para PDF
 exportgraphics(f, './Resultados/AplicandoTsDown.pdf', 'ContentType', 'vector');

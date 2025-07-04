@@ -33,3 +33,4 @@ xlabel('Tempo (s)');
 ylabel('Saída');
 title('Saída vs Tempo');
 grid on;
+
