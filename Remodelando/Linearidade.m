@@ -17,9 +17,9 @@ f = figure('Name', 'Resposta ao Degrau - Teste de Linearidade', 'NumberTitle', '
 % Subplot 1 - Resposta ao Degrau
 subplot(2, 1, 1);
 hold on; grid on;
-title('Resposta ao Degrau - Teste de Linearidade');
-xlabel('Tempo (s)');
-ylabel('Resposta');
+title('Resposta ao Degrau - Teste de Linearidade', 'Interpreter', 'latex');
+xlabel('Tempo (s)', 'Interpreter', 'latex');
+ylabel('Resposta', 'Interpreter', 'latex');
 
 % Inicializa vetores para segundo gráfico
 valores_R = [];
@@ -52,9 +52,9 @@ axis tight; % Ajuste automático dos eixos
 subplot(2, 1, 2);
 plot(valores_R, respostas_finais, '*-', 'LineWidth', 2, 'MarkerFaceColor', 'cyan');
 grid on;
-xlabel('R Aplicado (0-255)');
-ylabel('Resposta Final');
-title('Resposta Final vs Entrada');
+xlabel('R Aplicado (0-255)', 'Interpreter', 'latex');
+ylabel('Resposta Final', 'Interpreter', 'latex');
+title('Resposta Final vs Entrada', 'Interpreter', 'latex');
 
 % Exporta gráfico
-exportgraphics(f, '../Resultados/Lineariedade.pdf', 'ContentType', 'vector');
+exportgraphics(f, './Resultados/Lineariedade.pdf', 'ContentType', 'vector');
