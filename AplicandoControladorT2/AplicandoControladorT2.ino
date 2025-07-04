@@ -75,14 +75,29 @@ void PrintOut(float un, float xhat, float en, float yn)
 void loop(){
  // Definindo e inicializando as variáveis
   float T = 0.008;  // Tempo de amostragem
-  float Ad = 0.9167; // Matriz A do sistema discretizado
-  float Bd = 0.008;  // Matriz B do sistema discretizado
+  
+  // Euler
+  // float Ad = 0.9167; // Matriz A do sistema discretizado
+  // float Bd = 0.008;  // Matriz B do sistema discretizado
+  // float Cd = 6198.0;  // Matriz C do sistema discretizado
+  // float Dd = 0;  // Matriz C do sistema discretizado
+
+  // Tustin
+  // float Ad = 0.92; // Matriz A do sistema discretizado
+  // float Bd = 0.00768;  // Matriz B do sistema discretizado
+  // float Cd = 5950.0;  // Matriz C do sistema discretizado
+  // float Dd = 23.8;  // Matriz C do sistema discretizado
+
+  // ZOH
+  float Ad = 0.92; // Matriz A do sistema discretizado
+  float Bd = 0.007676;  // Matriz B do sistema discretizado
   float Cd = 6198.0;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = 4.8388;  // Ganho do controlador
-  float Ki = 0.0245;  // Ganho do integrador
-  float L = 0.014;    // Ganho do observador
+  // Ts down
+  float K = 35.3499;  // Ganho do controlador
+  float Ki = 0.2204;  // Ganho do integrador
+  float L = 0.0368;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
   int   R = 595;
@@ -98,9 +113,6 @@ void loop(){
   float  ek   = R - yk;   
   while(micros() <= Duracao_Resposta){
     
-    // if (micros() > 5000000){
-    //   R = 610;
-    // }
 
     // Atualização do estado associado ao integrador
     xnk = xnk + (T * ek);
