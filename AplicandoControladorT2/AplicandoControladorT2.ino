@@ -18,17 +18,21 @@ void setup(){
   // Essas configurações tem que ser mantida, para não ter entrada negativa no arduino
   digitalWrite(Rotacao1Pin, HIGH);
   digitalWrite(Rotacao2Pin, LOW);
-  Serial.print("Tempo,Entrada,Erro,Saida/");
+  Serial.print("Tempo, Uk, Vap, Erro, Saida/");
 }
 
-void PrintOut(float un, float en, float yn)
+void PrintOut(float un, float Vap, float en, float yn)
 {
     // Tempo percorrido
     Serial.print(micros());
     Serial.print(",");
 
-    // Entrada da planta
+    // saida do controlador
     Serial.print(un); 
+    Serial.print(",");
+
+    // Tensao Aplicada na planta
+    Serial.print(Vap); 
     Serial.print(",");
 
     // erro
@@ -38,7 +42,6 @@ void PrintOut(float un, float en, float yn)
     // saida 
     Serial.print(yn); 
     Serial.print("/");
-
 }
 
 /*
@@ -85,12 +88,12 @@ void loop(){
   int R = 600;
   int deg = 156;
   float  uk   = 0;
+  float  Vap  = 0;
   float  yk   = 0;
   float  xk   = 0;
   float  xhat = 0;
   float  xnk  = 0;
   float  yhat = 0;
-  float  ehat = 0;
   float  ek   = R - yk;    
   int changeRef = 10;   
   
@@ -107,7 +110,6 @@ void loop(){
 
   while(micros() <= Duracao_Resposta){
     ek = R - yk;
-    ehat = xk - xhat;  
 
     // Atualização do estado associado ao integrador
     xnk = xnk + (T * ek);
@@ -121,22 +123,18 @@ void loop(){
     // Lei de controle com estado estimado
     uk = -(K)*xhat + (Ki)*xnk;
 
-    uk = uk > 255 ? 255 : uk;
-    uk = uk < 0 ? 0 : uk;
+    Vap = uk * deg;
+     
+    Vap = Vap > 255 ? 255 : Vap;
+    Vap = Vap < 50 ? 50 : Vap;
 
-    analogWrite(VelocidadePin, (uk * deg));  // Ativa o motor com a nova entrada
+    analogWrite(VelocidadePin, Vap);  // Ativa o motor com a nova entrada
     yk = analogRead(Tensao_Gerador); // Valor da saída
-    PrintOut((uk * deg), ek, yk);
+    PrintOut(uk, Vap, ek, yk);
     _delay_us(5800);
-
-    if (ek == 0){
-      changeRef ++;
-      if (changeRef == 10){
-        R = R + 10; // Pequeno incremento da referência para continuar na região linear projetada
-        changeRef = 0;
-      }
-    }
   }
+
+
   // Desativa o motor
   analogWrite(VelocidadePin, LOW); 
 }
