@@ -3,7 +3,7 @@
 #define Rotacao2Pin 11 // Jumper Preto
 #define Tensao_Gerador A0 
 
-#define Duracao_Resposta 5000000 // [us] -> 3 [s]
+#define Duracao_Resposta 6000000 // [us] -> 3 [s]
 
 int monitor = 0;
 
@@ -157,13 +157,13 @@ void loop(){
     _delay_us(5800);
 
     if (micros() > 1500000 && micros() < 2500000) {
-      R = 650;
+      R = 610;
     }
-    else if (micros() > 2500000 && micros() < 3500000){
-      R = 600;
+    else if (micros() > 2500000 && micros() < 4000000){
+      R = 595;
     }
-    else if (micros() > 3500000){
-      R = 590;
+    else if (micros() > 4000000){
+      R = 580;
     }
 
   }

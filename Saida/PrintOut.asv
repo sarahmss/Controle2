@@ -2,11 +2,9 @@
 %dados = readtable('./saidas-earlystart_smallchanges.csv');
 dados = readtable('./saidas-earlystart_bigchanges.csv');
 
-ref1 = 595;
+ref1 = 600;
 ref2 = 650;
-%ref2 = 610;
 ref3 = 550;
-%ref3 = 580;
 
 t8ms = 1:length(dados.Tempo);
 t8ms = t8ms * 8e-3;
@@ -42,15 +40,13 @@ figure('Name', 'Resposta do Sistema com Controle', 'NumberTitle', 'off');
 % grid on;
 
 % Subplot 4 - Saída
-%subplot(4,1,4);
-plot(tempo, saida, 'm', 'LineWidth', 1,'DisplayName','sinal de saída');
-legend off;
+subplot(4,1,4);
+plot(tempo, saida, 'r', 'LineWidth', 0.5);
 xlabel('Tempo (s)');
 ylabel('Saída');
 ylim([400 800]);
 title('Saída vs Tempo');
-yline(ref1, 'r--', 'LineWidth', 1, 'DisplayName',num2str(600));
-yline(ref2, 'b--', 'LineWidth', 1, 'DisplayName',num2str(ref2));
-yline(ref3, 'g--', 'LineWidth', 1, 'DisplayName',num2str(ref3));
-legend;
+yline(ref1, 'r--', 'LineWidth', 0.5);
+yline(ref2, 'b--', 'LineWidth', 0.5);
+yline(ref3, 'm--', 'LineWidth', 0.5);
 grid on;
