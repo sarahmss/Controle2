@@ -58,24 +58,24 @@ end
 
 % Títulos e eixos
 subplot(2,2,1);
-xlabel('Tempo [s]');
-ylabel('u[k]');
-title('Sinal de Controle $u[k]$', 'Interpreter', 'latex');
+xlabel('Tempo (s)');
+ylabel('u(t)');
+title('Sinal de Controle $u(t)$', 'Interpreter', 'latex');
 
 subplot(2,2,2);
 xlabel('Tempo [s]');
-ylabel('$\hat{x}[k]$', 'Interpreter', 'latex');
-title('Estado observado $\hat{x}[k]$', 'Interpreter', 'latex');
+ylabel('$\hat{x}$', 'Interpreter', 'latex');
+title('Estado observado $\hat{x}(t)$', 'Interpreter', 'latex');
 
 subplot(2,2,3);
-xlabel('Tempo [s]');
-ylabel('$e[k]$', 'Interpreter', 'latex');
-title('Erro de rastreamento $e[k]$', 'Interpreter', 'latex');
+xlabel('Tempo (s)');
+ylabel('$e(t)$', 'Interpreter', 'latex');
+title('Erro de rastreamento $e(t)$', 'Interpreter', 'latex');
 
 subplot(2,2,4);
 xlabel('Tempo [s]');
-ylabel('$y[k]$', 'Interpreter', 'latex');
-title('Saida y[k]', 'Interpreter', 'latex');
+ylabel('$y(t)$', 'Interpreter', 'latex');
+title('Saida y(t)', 'Interpreter', 'latex');
 
 % Sincroniza eixos
 linkaxes(findall(gcf, 'Type', 'axes'), 'x');
