@@ -1,10 +1,12 @@
 % Lê o arquivo CSV
 dados = readtable('./Saida/saidas-R=600.csv');
 
+t8ms = 1:length(dados.Tempo);
+t8ms = t8ms * 8e-3;
 % Extrai os vetores das colunas
-tempo   = dados.Tempo * 0.008; % Conversão se Tempo estiver em índices
+tempo   = t8ms; % Conversão se Tempo estiver em índices
 entrada = dados.Uk;
-Vap     = dados.Vap;           % Caso exista essa coluna
+xhat     = dados.xhat;           % Caso exista essa coluna
 erro    = dados.Erro;
 saida   = dados.Saida;
 
@@ -20,8 +22,8 @@ grid on;
 
 % Subplot 2 - Tensão de Aplicação (Vap)
 subplot(4,1,2);
-plot(tempo, Vap, 'm', 'LineWidth', 1.5);
-ylabel('V_{aplicada}');
+plot(tempo, xhat, 'm', 'LineWidth', 1.5);
+ylabel('x_{obs}');
 title('Tensão Aplicada vs Tempo');
 grid on;
 

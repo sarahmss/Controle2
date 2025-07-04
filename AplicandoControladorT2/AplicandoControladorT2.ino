@@ -3,7 +3,7 @@
 #define Rotacao2Pin 11 // Jumper Preto
 #define Tensao_Gerador A0 
 
-#define Duracao_Resposta 3000000 // [us] -> 3 [s]
+#define Duracao_Resposta 10000000 // [us] -> 10 [s]
 
 int monitor = 0;
 
@@ -18,10 +18,10 @@ void setup(){
   // Essas configurações tem que ser mantida, para não ter entrada negativa no arduino
   digitalWrite(Rotacao1Pin, HIGH);
   digitalWrite(Rotacao2Pin, LOW);
-  Serial.print("Tempo, Uk, Vap, Erro, Saida/");
+  Serial.print("Tempo, Uk, xhat, Erro, Saida/");
 }
 
-void PrintOut(float un, float Vap, float en, float yn)
+void PrintOut(float un, float xhat, float en, float yn)
 {
     // Tempo percorrido
     Serial.print(micros());
@@ -32,7 +32,7 @@ void PrintOut(float un, float Vap, float en, float yn)
     Serial.print(",");
 
     // Tensao Aplicada na planta
-    Serial.print(Vap); 
+    Serial.print(xhat); 
     Serial.print(",");
 
     // erro
@@ -75,17 +75,17 @@ void PrintOut(float un, float Vap, float en, float yn)
 void loop(){
  // Definindo e inicializando as variáveis
   float T = 0.008;  // Tempo de amostragem
-  float Ad = 0.9894; // Matriz A do sistema discretizado
+  float Ad = 0.9167; // Matriz A do sistema discretizado
   float Bd = 0.008;  // Matriz B do sistema discretizado
-  float Cd = 798.1;  // Matriz C do sistema discretizado
+  float Cd = 6198.0;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = 4.0032;  // Ganho do controlador
-  float Ki = 0.0319;  // Ganho do integrador
-  float L = 0.0351;    // Ganho do observador
+  float K = 16.25;  // Ganho do controlador
+  float Ki = 0.1177;  // Ganho do integrador
+  float L = 0.0232;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
-  int R = 600;
+  int R = 595;
   int deg = 156;
   float  uk   = 0;
   float  Vap  = 0;
@@ -97,19 +97,12 @@ void loop(){
   float  ek   = R - yk;    
   int changeRef = 10;   
   
-  // while(micros() <= 1000000){
-  //   // Soft-start
-  //   analogWrite(VelocidadePin, deg);  // Ativa o motor com a velocidade da região a qual o controlador foi projetada
-  //   yk = analogRead(Tensao_Gerador); // Valor da saída
-  //   ek = R - yk;
-  //   PrintOut(R, ek, yk);
-  //   _delay_us(5800);
-  // }
-  // analogWrite(VelocidadePin, deg + 10);  // Pequeno incremento da referência para continuar na região linear projetada
-
-
+ 
   while(micros() <= Duracao_Resposta){
-    ek = R - yk;
+    
+    if (micros() > 5000000){
+      R = 610;
+    }
 
     // Atualização do estado associado ao integrador
     xnk = xnk + (T * ek);
@@ -122,18 +115,17 @@ void loop(){
     
     // Lei de controle com estado estimado
     uk = -(K)*xhat + (Ki)*xnk;
-
-    Vap = uk * deg;
      
-    Vap = Vap > 255 ? 255 : Vap;
-    Vap = Vap < 50 ? 50 : Vap;
+    uk = uk > 255 ? 255 : uk;
+    uk = uk < 100 ? 100 : uk;
 
-    analogWrite(VelocidadePin, Vap);  // Ativa o motor com a nova entrada
+    analogWrite(VelocidadePin, uk);  // Ativa o motor com a nova entrada
     yk = analogRead(Tensao_Gerador); // Valor da saída
-    PrintOut(uk, Vap, ek, yk);
+    PrintOut(uk, xhat, ek, yk);
+
+    ek = R - yk;
     _delay_us(5800);
   }
-
 
   // Desativa o motor
   analogWrite(VelocidadePin, LOW); 

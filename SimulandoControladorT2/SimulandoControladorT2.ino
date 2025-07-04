@@ -72,28 +72,30 @@ void PrintOut(float uk, float ek, float yk)
 */
 
 void loop(){
+
  // Definindo e inicializando as variáveis
   float T = 0.008;  // Tempo de amostragem
-  float Ad = 0.9894; // Matriz A do sistema discretizado
+  float Ad = 0.9167; // Matriz A do sistema discretizado
   float Bd = 0.008;  // Matriz B do sistema discretizado
-  float Cd = 798.1;  // Matriz C do sistema discretizado
+  float Cd = 6198.0;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = 4.0032;  // Ganho do controlador
-  float Ki = 0.0319;  // Ganho do integrador
-  float L = 0.0351;    // Ganho do observador
+  float K = 16.25;  // Ganho do controlador
+  float Ki = 0.1177;  // Ganho do integrador
+  float L = 0.0232;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
-  int R = 156;
+  int R = 595;
   int deg = 156;
   float  uk   = 0;
+  float  Vap  = 0;
   float  yk   = 0;
   float  xk   = 0;
   float  xhat = 0;
   float  xnk  = 0;
   float  yhat = 0;
-  float  ehat = 0;
-  float  ek   = R - yk;                              
+  float  ek   = R - yk;    
+  int changeRef = 10;                                
 
   while(micros() <= Duracao_Resposta){
     // Atualização do estado associado ao integrador
@@ -107,10 +109,6 @@ void loop(){
     
     // Lei de controle com estado estimado
     uk = -(K)*xhat + (Ki)*xnk;
-    // uk = uk * deg;
-
-    uk = uk > 255 ? 255 : uk;
-    uk = uk < 0 ? 0 : uk;
 
     // Evolução do sistema
     xk = (Ad * xk) + (Bd * uk);
@@ -119,7 +117,6 @@ void loop(){
     PrintOut(uk, ek, yk);
 
     ek = R - yk;
-    ehat = xk - xhat;  
     _delay_us(5800);
   }
 }
