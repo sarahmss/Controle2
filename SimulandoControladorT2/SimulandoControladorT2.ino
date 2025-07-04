@@ -74,17 +74,18 @@ void PrintOut(float uk, float ek, float yk)
 void loop(){
  // Definindo e inicializando as variáveis
   float T = 0.008;  // Tempo de amostragem
-  float Ad = 0.9891; // Matriz A do sistema discretizado
+  float Ad = 0.9894; // Matriz A do sistema discretizado
   float Bd = 0.008;  // Matriz B do sistema discretizado
-  float Cd = 197.9;  // Matriz C do sistema discretizado
+  float Cd = 798.1;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
   float K = 4.0032;  // Ganho do controlador
-  float Ki = 0.1179;  // Ganho do integrador
-  float L = 0.1414;    // Ganho do observador
+  float Ki = 0.0319;  // Ganho do integrador
+  float L = 0.0351;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
   int R = 156;
+  int deg = 156;
   float  uk   = 0;
   float  yk   = 0;
   float  xk   = 0;
@@ -106,6 +107,7 @@ void loop(){
     
     // Lei de controle com estado estimado
     uk = -(K)*xhat + (Ki)*xnk;
+    // uk = uk * deg;
 
     uk = uk > 255 ? 255 : uk;
     uk = uk < 0 ? 0 : uk;

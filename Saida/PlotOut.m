@@ -1,5 +1,7 @@
 % Lê o arquivo CSV
-dados = readtable('./Saida/saidas.csv');
+dados = readtable('./Saida/saidas-R=600.csv')
+% dados = readtable('./Saida/saidas-R=156d.csv')
+% dados = readtable('./Saida/saidas.csv');
 
 % Extrai os vetores das colunas
 tempo   = dados.Tempo * 0.008;
