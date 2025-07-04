@@ -3,7 +3,7 @@
 #define Rotacao2Pin 11 // Jumper Preto
 #define Tensao_Gerador A0 
 
-#define Duracao_Resposta 3000000 // [us] -> 3 [s]
+#define Duracao_Resposta 5000000 // [us] -> 3 [s]
 
 int monitor = 0;
 
@@ -77,10 +77,10 @@ void loop(){
   float T = 0.008;  // Tempo de amostragem
   
   // Euler
-  // float Ad = 0.9167; // Matriz A do sistema discretizado
-  // float Bd = 0.008;  // Matriz B do sistema discretizado
-  // float Cd = 6198.0;  // Matriz C do sistema discretizado
-  // float Dd = 0;  // Matriz C do sistema discretizado
+  float Ad = 0.9167; // Matriz A do sistema discretizado
+  float Bd = 0.008;  // Matriz B do sistema discretizado
+  float Cd = 6198.0;  // Matriz C do sistema discretizado
+  float Dd = 0;  // Matriz C do sistema discretizado
 
   // Tustin
   // float Ad = 0.92; // Matriz A do sistema discretizado
@@ -89,17 +89,36 @@ void loop(){
   // float Dd = 23.8;  // Matriz C do sistema discretizado
 
   // ZOH
-  float Ad = 0.92; // Matriz A do sistema discretizado
-  float Bd = 0.007676;  // Matriz B do sistema discretizado
-  float Cd = 6198.0;  // Matriz C do sistema discretizado
-  float Dd = 0;  // Matriz C do sistema discretizado
+  //float Ad = 0.92; // Matriz A do sistema discretizado
+  //float Bd = 0.007676;  // Matriz B do sistema discretizado
+  //float Cd = 6198.0;  // Matriz C do sistema discretizado
+  //float Dd = 0;  // Matriz C do sistema discretizado
 
   // Ts down
-  float K = 35.3499;  // Ganho do controlador
-  float Ki = 0.2204;  // Ganho do integrador
-  float L = 0.0368;    // Ganho do observador
+  //float K = 35.3499;  // Ganho do controlador
+  //float Ki = 0.2204;  // Ganho do integrador
+  //float L = 0.0368;    // Ganho do observador
+  //float Ld = L * T;    // Ganho do observador
+
+  // Up 8% Ts 0.17s
+  //float K = 4.8388;  // Ganho do controlador
+  //float Ki = 0.0245;  // Ganho do integrador
+  //float L = 0.014;    // Ganho do observador
+  //float Ld = L * T;    // Ganho do observador
+  
+  // Up 12% Ts 0.27s
+  //float K = 27.7221;  // Ganho do controlador
+  //float Ki = 0.1937;  // Ganho do integrador
+  //float L = 0.0324;    // Ganho do observador
+  //float Ld = L * T;    // Ganho do observador
+
+  // Up 8% Ts 0.31s
+  float K = 15.0092;  // Ganho do controlador
+  float Ki = 0.0680;  // Ganho do integrador
+  float L = 0.0222;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
+
   int   R = 595;
   int   deg = 156;
   float Vref  = 0;
@@ -136,6 +155,17 @@ void loop(){
 
     ek = R - yk;
     _delay_us(5800);
+
+    if (micros() > 1500000 && micros() < 2500000) {
+      R = 650;
+    }
+    else if (micros() > 2500000 && micros() < 3500000){
+      R = 600;
+    }
+    else if (micros() > 3500000){
+      R = 590;
+    }
+
   }
 
   // Desativa o motor
