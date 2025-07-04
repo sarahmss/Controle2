@@ -75,7 +75,7 @@ title('Erro de rastreamento $e[k]$', 'Interpreter', 'latex');
 subplot(2,2,4);
 xlabel('Tempo [s]');
 ylabel('$y[k]$', 'Interpreter', 'latex');
-title('Saída y[k]', 'Interpreter', 'latex');
+title('Saida y[k]', 'Interpreter', 'latex');
 
 % Sincroniza eixos
 linkaxes(findall(gcf, 'Type', 'axes'), 'x');
