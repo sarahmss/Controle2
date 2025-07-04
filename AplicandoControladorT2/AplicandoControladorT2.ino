@@ -3,7 +3,7 @@
 #define Rotacao2Pin 11 // Jumper Preto
 #define Tensao_Gerador A0 
 
-#define Duracao_Resposta 10000000 // [us] -> 10 [s]
+#define Duracao_Resposta 3000000 // [us] -> 3 [s]
 
 int monitor = 0;
 
@@ -80,13 +80,14 @@ void loop(){
   float Cd = 6198.0;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = 16.25;  // Ganho do controlador
-  float Ki = 0.1177;  // Ganho do integrador
-  float L = 0.0232;    // Ganho do observador
+  float K = 4.8388;  // Ganho do controlador
+  float Ki = 0.0245;  // Ganho do integrador
+  float L = 0.014;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
-  int R = 595;
-  int deg = 156;
+  int   R = 595;
+  int   deg = 156;
+  float Vref  = 0;
   float  uk   = 0;
   float  Vap  = 0;
   float  yk   = 0;
@@ -94,15 +95,12 @@ void loop(){
   float  xhat = 0;
   float  xnk  = 0;
   float  yhat = 0;
-  float  ek   = R - yk;    
-  int changeRef = 10;   
-  
- 
+  float  ek   = R - yk;   
   while(micros() <= Duracao_Resposta){
     
-    if (micros() > 5000000){
-      R = 610;
-    }
+    // if (micros() > 5000000){
+    //   R = 610;
+    // }
 
     // Atualização do estado associado ao integrador
     xnk = xnk + (T * ek);
@@ -115,11 +113,12 @@ void loop(){
     
     // Lei de controle com estado estimado
     uk = -(K)*xhat + (Ki)*xnk;
-     
-    uk = uk > 255 ? 255 : uk;
-    uk = uk < 100 ? 100 : uk;
+    
+    Vref = uk * deg;
+    Vref = Vref > 255 ? 255 : Vref;
+    Vref = Vref < 0 ? 0 : Vref;
 
-    analogWrite(VelocidadePin, uk);  // Ativa o motor com a nova entrada
+    analogWrite(VelocidadePin, Vref);  // Ativa o motor com a nova entrada
     yk = analogRead(Tensao_Gerador); // Valor da saída
     PrintOut(uk, xhat, ek, yk);
 

@@ -1,5 +1,15 @@
 % Lista de arquivos
-arquivos = dir('saida-*.csv');
+arquivos = dir('./Remodelando/saida-*.csv');
+
+% Extrai os valores de R dos nomes dos arquivos para ordenação
+valores_R_ordenacao = zeros(1, length(arquivos));
+for i = 1:length(arquivos)
+    valores_R_ordenacao(i) = sscanf(arquivos(i).name, 'saida-%d.csv');
+end
+
+% Ordena os arquivos com base nos valores de R extraídos
+[~, idx_ordenado] = sort(valores_R_ordenacao);
+arquivos = arquivos(idx_ordenado);
 
 % Cria nova figura
 f = figure('Name', 'Resposta ao Degrau - Teste de Linearidade', 'NumberTitle', 'off');
@@ -15,28 +25,28 @@ ylabel('Resposta');
 valores_R = [];
 respostas_finais = [];
 
-% Loop pelos arquivos
+% Loop pelos arquivos já ordenados
 for i = 1:length(arquivos)
     nome_arquivo = arquivos(i).name;
-    dados = readtable(nome_arquivo);
+    dados = readtable(fullfile(arquivos(i).folder, nome_arquivo));
 
-    tempo = dados.Tempo;
+    t8ms = 1:length(dados.Tempo);
+    t8ms = t8ms * 8e-3;
     saida = dados.Saida;
 
-    % Extrai valor de R do nome do arquivo (ex: saida-125.csv → R = 125)
+    % Extrai valor de R
     R = sscanf(nome_arquivo, 'saida-%d.csv');
 
     % Plota no primeiro subplot
-    plot(tempo, saida, 'DisplayName', sprintf('R = %d', R));
+    plot(t8ms, saida, 'DisplayName', sprintf('R = %d', R));
 
-    % Armazena valor de R e saída final (último ponto)
+    % Armazena para segundo subplot
     valores_R(end+1) = R;
     respostas_finais(end+1) = saida(end);
 end
-[valores_R, idx] = sort(valores_R);
-respostas_finais = respostas_finais(idx);
 
 legend('show');
+axis tight; % Ajuste automático dos eixos
 
 % Subplot 2 - Resposta Final vs Entrada
 subplot(2, 1, 2);
@@ -45,13 +55,6 @@ grid on;
 xlabel('R Aplicado (0-255)');
 ylabel('Resposta Final');
 title('Resposta Final vs Entrada');
-exportgraphics(f, '../Resultados/Lineariedade.pdf', 'ContentType', 'vector');
 
-% figure;
-% R_interp = linspace(min(valores_R), max(valores_R), 500);
-% resposta_interp = interp1(valores_R, respostas_finais, R_interp, 'spline');
-% plot(R_interp, resposta_interp, 'b-', 'LineWidth', 2, 'DisplayName', 'Interpolação');
-% xlabel('R Aplicado (0-255)');
-% ylabel('Resposta Final');
-% title('Resposta Final vs Entrada');
-% legend('show');
+% Exporta gráfico
+exportgraphics(f, '../Resultados/Lineariedade.pdf', 'ContentType', 'vector');

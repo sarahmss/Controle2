@@ -80,9 +80,9 @@ void loop(){
   float Cd = 6198.0;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  float K = 16.25;  // Ganho do controlador
-  float Ki = 0.1177;  // Ganho do integrador
-  float L = 0.0232;    // Ganho do observador
+  float K = 4.8388;  // Ganho do controlador
+  float Ki = 0.0245;  // Ganho do integrador
+  float L = 0.014;    // Ganho do observador
   float Ld = L * T;    // Ganho do observador
  
   int R = 595;
@@ -95,7 +95,6 @@ void loop(){
   float  xnk  = 0;
   float  yhat = 0;
   float  ek   = R - yk;    
-  int changeRef = 10;                                
 
   while(micros() <= Duracao_Resposta){
     // Atualização do estado associado ao integrador
