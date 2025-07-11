@@ -1,4 +1,4 @@
-function [y_log, u_log, x_log, e_log] = ApplyController(sys, K, Ki, N, Ts, R)
+function [y_log, u_log, x_log, e_log, xn_log] = ApplyController(sys, K, Ki, N, Ts, R)
 % Aplica o controlador por realimentação de estados discretizado
 % sys    : sistema em espaço de estados discretizado (ss)
 % K_hat  : vetor linha de ganhos (pode ser [K  -Ki] se for sistema aumentado)
@@ -9,6 +9,7 @@ function [y_log, u_log, x_log, e_log] = ApplyController(sys, K, Ki, N, Ts, R)
     u_log = zeros(N, 1);
     x_log = zeros(N, 1);
     e_log = zeros(N, 1);
+    xn_log = zeros(N, 1);
 
     y_k = 0;
     x_k = 0;
@@ -25,7 +26,7 @@ function [y_log, u_log, x_log, e_log] = ApplyController(sys, K, Ki, N, Ts, R)
         y_log(k) = y_k;
         u_log(k) = u_k;
         e_log(k) = ek;
-
+        xn_log(k) = xn;
 
         % Evolução do sistema
         x_k = sys.A * x_k + sys.B * u_k;
