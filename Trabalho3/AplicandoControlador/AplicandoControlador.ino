@@ -3,7 +3,7 @@
 #define Rotacao2Pin 11 // Jumper Preto
 #define Tensao_Gerador A0 
 
-#define Duracao_Resposta 5000000 // [us] -> 3 [s]
+#define Duracao_Resposta 6000000 // [us] -> 3 [s]
 
 int monitor = 0;
 
@@ -77,10 +77,10 @@ void loop(){
   float T = 0.008;  // Tempo de amostragem
   
   // Euler
-  float Ad = 0.9167; // Matriz A do sistema discretizado
-  float Bd = 0.008;  // Matriz B do sistema discretizado
-  float Cd = 6198.0;  // Matriz C do sistema discretizado
-  float Dd = 0;  // Matriz C do sistema discretizado
+  //float Ad = 0.9167; // Matriz A do sistema discretizado
+  //float Bd = 0.008;  // Matriz B do sistema discretizado
+  //float Cd = 6198.0;  // Matriz C do sistema discretizado
+  //float Dd = 0;  // Matriz C do sistema discretizado
 
   // Tustin
   // float Ad = 0.92; // Matriz A do sistema discretizado
@@ -89,10 +89,10 @@ void loop(){
   // float Dd = 23.8;  // Matriz C do sistema discretizado
 
   // ZOH
-  //float Ad = 0.92; // Matriz A do sistema discretizado
-  //float Bd = 0.007676;  // Matriz B do sistema discretizado
-  //float Cd = 6198.0;  // Matriz C do sistema discretizado
-  //float Dd = 0;  // Matriz C do sistema discretizado
+  float Ad = 0.92; // Matriz A do sistema discretizado
+  float Bd = 0.007676;  // Matriz B do sistema discretizado
+  float Cd = 6198.0;  // Matriz C do sistema discretizado
+  float Dd = 0;  // Matriz C do sistema discretizado
 
   // Ts down
   //float K = 35.3499;  // Ganho do controlador
@@ -157,13 +157,13 @@ void loop(){
     _delay_us(5800);
 
     if (micros() > 1500000 && micros() < 2500000) {
-      R = 650;
+      R = 700;
     }
-    else if (micros() > 2500000 && micros() < 3500000){
-      R = 600;
+    else if (micros() > 2500000 && micros() < 4000000){
+      R = 595;
     }
-    else if (micros() > 3500000){
-      R = 590;
+    else if (micros() > 4000000){
+      R = 500;
     }
 
   }
