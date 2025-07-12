@@ -47,10 +47,10 @@ R_c = 20 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a u
     Beuler =  Ts * sys.B;
     Ceuler = sys.C;
     Deuler = sys.D;
-    sys = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
+    sys_d = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
 
     t = t8ms;          
-    [y, ~, x, e, xn] = ApplyController(sys, K, Ki, N, Ts, R);    
+    [y, ~, x, e, xn] = ApplyController(sys_d, K, Ki, N, Ts, R);    
 
 %%  Projeto do Observador sem filtro de kallman
 
@@ -62,9 +62,83 @@ qsi = (-log(up/100))/(sqrt(pi^2+log(up/100)^2));
 Ts_obs = (ts / 10);
 wn_obs = 4/(qsi*Ts_obs); % Calcula a frequência natural
 polo_o = qsi*wn_obs
-L = -place(Ac', Cc', polo_o)';
+L_o = -place(Ac', Cc', polo_o)';
 
-[y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys, K, Ki, L*Ts, N, Ts, R);
+
+[y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys_d, K, Ki, L_o*Ts, N, Ts, R);
+
+% T_total = table();
+% T = table({QR_label}, overshoot, settlingTime, ...
+%     'VariableNames', {'Q_R', 'Ultrapassagem(%)', 'TempoAcomodacao(s)'});
+% T_total = [T_total; T];  % Concatenar na vertical
+
+ f = figure;
+
+    % --- Subplot 1: Sinal de Controle u[k]
+    subplot(2,2,1);
+    hold on;
+    plot(t, u, 'b-', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('u[k]');
+    title('Sinal de Controle $u[k]$', 'Interpreter', 'latex');
+    legend({'$u[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 2: Saida
+    subplot(2,2,2);
+    hold on;
+    plot(t, y_log, 'b-', 'LineWidth', 1.5);
+    plot(t, y_hat, 'g:', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('y[k]');
+    title('Saida $y[k]$', 'Interpreter', 'latex');
+    legend({'$y[k]$', '$\hat{y}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 3: Estado observado xk
+    subplot(2,3,4);
+    hold on;
+    plot(t, x_log, 'b-', 'LineWidth', 1.5);
+    plot(t, x_hat, 'g:', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('$\hat{x}[k]$, $x[k]$', 'Interpreter', 'latex');
+    title('$\hat{x}[k]$ vs $x[k]$', 'Interpreter', 'latex');
+    legend({'$x[k]$', '$\hat{x}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 4: Erro de estimativa
+    subplot(2,3,5);
+    hold on;
+    plot(t, e_hat, 'b-', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
+    title('Erro de estimativa: $\hat{e}[k]$', 'Interpreter', 'latex');
+    legend({'$\hat{e}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 5: Erro real
+    subplot(2,3,6);
+    hold on;
+    plot(t, e, 'b-', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('$e[k]$', 'Interpreter', 'latex');
+    title('Erro $e[k]$', 'Interpreter', 'latex');
+    legend({'$e[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+
+sgtitle(sprintf('Analise do Observador: ($L_o = %g$ $Q_c = %g$, $R_c = %g$)', round(L_o, 3), Q_c, R_c), 'Interpreter', 'latex');
+
+% Exporta tudo em um único PDF
+exportgraphics(f, './Resultados/Observador.pdf', 'ContentType', 'vector');
+
+%% Projeto do Observador com filtro de kallman
+
+Q_k = 0.1 * eye(1); % Aumentar Q em relação a R: 
+R_k = 250 * eye(1); % Aumentar R em relação a Q: 
+
+[kalmf, L_k, P] = kalman(sys, Q_k, R_k);
+
+[y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys_d, K, Ki, L_k*Ts, N, Ts, R);
 
 
  f = figure;
@@ -121,7 +195,7 @@ L = -place(Ac', Cc', polo_o)';
     legend({'$e[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
     grid on;
 
-sgtitle(sprintf('Analise do Observador: ($L_o = %g$ $Q_c = %g$, $R_c = %g$)', round(L, 3), Q_c, R_c), 'Interpreter', 'latex');
+sgtitle(sprintf('Analise do Observador projetado via filtro de Kalman: ($L_k = %g$, $Q_k = %g$, $R_k = %g$)', round(L_k, 3), Q_k, R_k), 'Interpreter', 'latex');
 
 % Exporta tudo em um único PDF
-exportgraphics(f, './Resultados/Observador.pdf', 'ContentType', 'vector');
+exportgraphics(f, './Resultados/ObservadorKalman.pdf', 'ContentType', 'vector');
