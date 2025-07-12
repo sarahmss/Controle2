@@ -15,17 +15,19 @@ t8ms = t8ms * 8e-3;
 
 %% LQI
 
-K_q_values = [0.1, 1, 0.75, 1.2];  % Ex: menor -> mais devagar; maior -> mais agressivo
-K_c_values = [0.5, 1, 0.5, 2];  % Ex: menor -> menos penalização do controle; maior -> mais economia no esforço de controle
+% K_q_values = [0.1, 1, 0.75, 1.5]; 
+% K_r_values = [0.5, 1, 0.5, 3];  
 
+K_q_values = [0.1]; 
+K_r_values = [20];  
 T_total = table();
 
 for i = 1:length(K_q_values)
     K_q = K_q_values(i);
-    K_c = K_c_values(i);
+    K_r = K_r_values(i);
 
     Q_c = K_q * eye(1); % Aumentar Q em relação a R: x(t)->0 mais rapidamente esforço de controle u(t) maior
-    R_c = K_c * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
+    R_c = K_r * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
     
     % Encontrando os ganhos
     

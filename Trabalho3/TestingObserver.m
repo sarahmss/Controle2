@@ -14,8 +14,8 @@ t8ms = 1:(length(dados.Tempo));
 t8ms = t8ms * 8e-3;
 
 %% 
-Q_c = 1.2 * eye(1); % Aumentar Q em relação a R: x(t)->0 mais rapidamente esforço de controle u(t) maior
-R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
+Q_c = 0.1 * eye(1); % Aumentar Q em relação a R: x(t)->0 mais rapidamente esforço de controle u(t) maior
+R_c = 20 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
 
 % Por função LQI e sistema expandido
     [Ke, Se, Pe] = lqi(sys, Q_c, R_c);
@@ -47,12 +47,14 @@ R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a 
     Beuler =  Ts * sys.B;
     Ceuler = sys.C;
     Deuler = sys.D;
-    sys_euler = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
-    
+    sys = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
 
-%%  Projeto do Observador
+    t = t8ms;          
+    [y, ~, x, e, xn] = ApplyController(sys, K, Ki, N, Ts, R);    
 
-info = stepinfo(y_euler, t);
+%%  Projeto do Observador sem filtro de kallman
+
+info = stepinfo(y, t);
 ts = info.SettlingTime;
 up = info.Overshoot;
 
@@ -60,72 +62,66 @@ qsi = (-log(up/100))/(sqrt(pi^2+log(up/100)^2));
 Ts_obs = (ts / 10);
 wn_obs = 4/(qsi*Ts_obs); % Calcula a frequência natural
 polo_o = qsi*wn_obs
-L = -place(Ac', Cc', polo_o)'
+L = -place(Ac', Cc', polo_o)';
 
-[y_euler_cl, e_log_euler, e_hat_euler, u_euler, y_hat_euler, x_hat_euler, x_log] = ApplyControllerAndObserver(sys_euler, K, Ki, L*Ts, N, Ts, R);
+[y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys, K, Ki, L*Ts, N, Ts, R);
 
 
  f = figure;
+
     % --- Subplot 1: Sinal de Controle u[k]
     subplot(2,2,1);
     hold on;
-    plot(t, u_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, u, 'b-', 'LineWidth', 1.5);
     xlabel('Iteração [k]');
     ylabel('u[k]');
     title('Sinal de Controle $u[k]$', 'Interpreter', 'latex');
+    legend({'$u[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
     grid on;
     
-    % --- Subplot 1: Estado observado xk
-    subplot(2,3,4);
-    hold on;
-    plot(t, x_cl * R, 'k-', 'LineWidth', 1.5);
-    plot(t, x_log, 'y:', 'LineWidth', 1.5);
-    plot(t, x_hat_euler, 'b:', 'LineWidth', 1.5);
-
-    hold off;
-    title('Estado estimado: $\hat{x}[k]$', 'Interpreter', 'latex');
-    xlabel('Iteração [k]');
-    ylabel('$\hat{x}[k]$', 'Interpreter', 'latex');
-    grid on;
-    
-    % --- Subplot 2: Estado xn
-    subplot(2,3,5);
-    hold on;
-    plot(t, e_hat_euler, 'b-', 'LineWidth', 1.5);
-    hold off;
-    title('Erro de estimativa: $\hat{e}[k]$', 'Interpreter', 'latex');
-    xlabel('Iteração [k]');
-    ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
-    grid on;
-    
-    
-    % --- Subplot 3: Erro
-    subplot(2,3,6);
-    hold on;
-    plot(t, e_euler, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$e[k]$', 'Interpreter', 'latex');
-    title('Erro $e[k]$', 'Interpreter', 'latex');
-    grid on;
-    
-    % --- Subplot 4: Saída
+    % --- Subplot 2: Saida
     subplot(2,2,2);
     hold on;
-    plot(t, y_cl * R, 'k-', 'LineWidth', 2, 'DisplayName', 'Contínuo');
-    plot(t, y_euler_cl, 'y:', 'LineWidth', 1.5);
-    plot(t, y_hat_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, y_log, 'b-', 'LineWidth', 1.5);
+    plot(t, y_hat, 'g:', 'LineWidth', 1.5);
     xlabel('Iteração [k]');
     ylabel('y[k]');
     title('Saida $y[k]$', 'Interpreter', 'latex');
+    legend({'$y[k]$', '$\hat{y}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 3: Estado observado xk
+    subplot(2,3,4);
+    hold on;
+    plot(t, x_log, 'b-', 'LineWidth', 1.5);
+    plot(t, x_hat, 'g:', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('$\hat{x}[k]$, $x[k]$', 'Interpreter', 'latex');
+    title('$\hat{x}[k]$ vs $x[k]$', 'Interpreter', 'latex');
+    legend({'$x[k]$', '$\hat{x}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 4: Erro de estimativa
+    subplot(2,3,5);
+    hold on;
+    plot(t, e_hat, 'b-', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
+    title('Erro de estimativa: $\hat{e}[k]$', 'Interpreter', 'latex');
+    legend({'$\hat{e}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
+    grid on;
+    
+    % --- Subplot 5: Erro real
+    subplot(2,3,6);
+    hold on;
+    plot(t, e, 'b-', 'LineWidth', 1.5);
+    xlabel('Iteração [k]');
+    ylabel('$e[k]$', 'Interpreter', 'latex');
+    title('Erro $e[k]$', 'Interpreter', 'latex');
+    legend({'$e[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
     grid on;
 
-% Legenda global abaixo da figura
-legend({'Continuo', 'Euler'}, ...
-    'Orientation', 'horizontal', ...
-    'Location', 'best', ...
-    'Interpreter', 'latex');
-
-sgtitle('Analise do Observador', 'Interpreter', 'latex');
+sgtitle(sprintf('Analise do Observador: ($L_o = %g$ $Q_c = %g$, $R_c = %g$)', round(L, 3), Q_c, R_c), 'Interpreter', 'latex');
 
 % Exporta tudo em um único PDF
 exportgraphics(f, './Resultados/Observador.pdf', 'ContentType', 'vector');

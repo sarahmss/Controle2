@@ -14,8 +14,8 @@ t8ms = 1:(length(dados.Tempo));
 t8ms = t8ms * 8e-3;
 
 %% 
-Q_c = 1.2 * eye(1); % Aumentar Q em relação a R: x(t)->0 mais rapidamente esforço de controle u(t) maior
-R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
+Q_c = 0.1 * eye(1); % Aumentar Q em relação a R: x(t)->0 mais rapidamente esforço de controle u(t) maior
+R_c = 20 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
 
 % Por função LQI e sistema expandido
     [Ke, Se, Pe] = lqi(sys, Q_c, R_c);
@@ -32,6 +32,12 @@ R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a 
     
     sys_cl = ss(A_cl, B_cl, C_cl, D_cl);
 
+    t = t8ms;
+    u = ones(size(t)); % Degrau unitário
+    
+    % Respostas em malha fechada dos sistemas
+    [y_cl, time_cl, x_cl] = lsim(sys_cl, u, t);    
+
     % Discretização do sistema
     n = size(Ac);
     N = length(t8ms);
@@ -42,10 +48,14 @@ R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a 
     Ceuler = sys.C;
     Deuler = sys.D;
     sys_euler = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
-    
+
+    t = t8ms;          
+    [y_euler, ~, x_euler, e_euler, xn_euler] = ApplyController(sys_euler, K, Ki, N, Ts, R);    
 
 %%  Projeto do Observador
-info = stepinfo(y_euler,     t);
+
+
+info = stepinfo(y_euler, t);
 ts = info.SettlingTime;
 up = info.Overshoot;
 
@@ -55,7 +65,9 @@ wn_obs = 4/(qsi*Ts_obs); % Calcula a frequência natural
 polo_o = qsi*wn_obs
 L = -place(Ac', Cc', polo_o)'
 
-[y_euler_cl, e_log_euler, e_hat_euler, u_euler, y_hat_euler, x_hat_euler] = ApplyControllerAndObserver(sys_euler, K, Ki, L, N, Ts, R);
+[y_euler_cl, e_log_euler, e_hat_euler, u_euler, y_hat_euler, x_hat_euler, x_log] = ApplyControllerAndObserver(sys_euler, K, Ki, L*Ts, N, Ts, R);
+
+
 
 
  f = figure;
@@ -68,26 +80,27 @@ L = -place(Ac', Cc', polo_o)'
     title('Sinal de Controle $u[k]$', 'Interpreter', 'latex');
     grid on;
     
-    % --- Subplot 1: Estado xk
+    % --- Subplot 1: Estado observado xk
     subplot(2,3,4);
     hold on;
-    plot(t, x_cl(:,1) * R, 'k-', 'LineWidth', 1.5); 
-    plot(t, x_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, x_cl , 'k-', 'LineWidth', 1.5);
+    plot(t, x_log, 'y:', 'LineWidth', 1.5);
+    plot(t, x_hat_euler, 'b:', 'LineWidth', 1.5);
+
     hold off;
-    title('Estado: $x[k]$', 'Interpreter', 'latex');
+    title('Estado estimado: $\hat{x}[k]$', 'Interpreter', 'latex');
     xlabel('Iteração [k]');
-    ylabel('$x[k]$', 'Interpreter', 'latex');
+    ylabel('$\hat{x}[k]$', 'Interpreter', 'latex');
     grid on;
     
     % --- Subplot 2: Estado xn
     subplot(2,3,5);
     hold on;
-    plot(t, x_cl(:,2) * R, 'k-', 'LineWidth', 1.5); 
-    plot(t, xn_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, e_hat_euler, 'b-', 'LineWidth', 1.5);
     hold off;
-    title('Estado: $x_n[k]$', 'Interpreter', 'latex');
+    title('Erro de estimativa: $\hat{e}[k]$', 'Interpreter', 'latex');
     xlabel('Iteração [k]');
-    ylabel('$x_n[k]$', 'Interpreter', 'latex');
+    ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
     grid on;
     
     
@@ -104,7 +117,8 @@ L = -place(Ac', Cc', polo_o)'
     subplot(2,2,2);
     hold on;
     plot(t, y_cl * R, 'k-', 'LineWidth', 2, 'DisplayName', 'Contínuo');
-    plot(t, y_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, y_euler_cl, 'y:', 'LineWidth', 1.5);
+    plot(t, y_hat_euler, 'b-', 'LineWidth', 1.5);
     xlabel('Iteração [k]');
     ylabel('y[k]');
     title('Saida $y[k]$', 'Interpreter', 'latex');
