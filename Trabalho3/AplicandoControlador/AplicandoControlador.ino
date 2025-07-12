@@ -89,37 +89,34 @@ void loop(){
   // float Dd = 23.8;  // Matriz C do sistema discretizado
 
   // ZOH
-  float Ad = 0.92; // Matriz A do sistema discretizado
-  float Bd = 0.007676;  // Matriz B do sistema discretizado
-  float Cd = 6198.0;  // Matriz C do sistema discretizado
+  float Ad = 0.9375; // Matriz A do sistema discretizado
+  float Bd = 0.008;  // Matriz B do sistema discretizado
+  float Cd = 4852.0;  // Matriz C do sistema discretizado
   float Dd = 0;  // Matriz C do sistema discretizado
 
-  // Ts down
-  //float K = 35.3499;  // Ganho do controlador
-  //float Ki = 0.2204;  // Ganho do integrador
-  //float L = 0.0368;    // Ganho do observador
-  //float Ld = L * T;    // Ganho do observador
-
-  // Up 8% Ts 0.17s
-  //float K = 4.8388;  // Ganho do controlador
-  //float Ki = 0.0245;  // Ganho do integrador
-  //float L = 0.014;    // Ganho do observador
-  //float Ld = L * T;    // Ganho do observador
   
-  // Up 12% Ts 0.27s
-  //float K = 27.7221;  // Ganho do controlador
-  //float Ki = 0.1937;  // Ganho do integrador
-  //float L = 0.0324;    // Ganho do observador
-  //float Ld = L * T;    // Ganho do observador
 
-  // Up 8% Ts 0.31s
-  float K = 15.0092;  // Ganho do controlador
-  float Ki = 0.0680;  // Ganho do integrador
-  float L = 0.0222;    // Ganho do observador
-  float Ld = L * T;    // Ganho do observador
+  // Qk=0.1; Rk=200 |  Qc = 0.1; Rc=20     
+  // float K =  19.522;  // Ganho do controlador
+  // float Ki = 0.070711;  // Ganho do integrador
+  // float L_o = 0.028228;    // Ganho do observador
+  // float L_k = 0.020808;    // Ganho do observador
+
+  // Qc=1; Rc=0.1     
+  // float K =  167.56;  // Ganho do controlador
+  // float Ki = 03.1623;  // Ganho do integrador
+  // float L_o = 0.07231;    // Ganho do observador
+
+  // Qc=0.1; Rc=6 |  Qk = 0.1; Rk=60  
+  
+  float K =  25.109;  // Ganho do controlador
+  float Ki = 0.10541;  // Ganho do integrador
+  float L_k = 0.031762 ;    // Ganho do observador
+
+  float Ld = L_k * T;    // Ganho do observador
  
 
-  int   R = 595;
+  int   R = 621;
   int   deg = 156;
   float Vref  = 0;
   float  uk   = 0;
@@ -157,13 +154,13 @@ void loop(){
     _delay_us(5800);
 
     if (micros() > 1500000 && micros() < 2500000) {
-      R = 700;
+      R = 671;
     }
     else if (micros() > 2500000 && micros() < 4000000){
-      R = 595;
+      R = 621;
     }
     else if (micros() > 4000000){
-      R = 500;
+      R = 571;
     }
 
   }

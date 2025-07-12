@@ -1,7 +1,7 @@
 %% Definição do sistema
-a = 10.4167;
+a = 7.8125;
 s = tf('s');
-Kp = 595;
+Kp = 621;
 Ts = 0.008; % Período de amostragem (Ts = 8ms)
 Gp = a * Kp /(s+a);
 Gp_zpk = zpk(Gp);
@@ -10,7 +10,7 @@ Gp_zpk = zpk(Gp);
 sys = ss(Ac, Bc, Cc, Dc); % Sistema tempo contínuo
 dados = readtable('./Remodelando/saida-156.csv');
 
-t8ms = 1:(length(dados.Tempo));
+t8ms = 1:(length(dados.Tempo)/2.5);
 t8ms = t8ms * 8e-3;
 
 %% 
@@ -66,11 +66,6 @@ L_o = -place(Ac', Cc', polo_o)';
 
 
 [y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys_d, K, Ki, L_o*Ts, N, Ts, R);
-
-% T_total = table();
-% T = table({QR_label}, overshoot, settlingTime, ...
-%     'VariableNames', {'Q_R', 'Ultrapassagem(%)', 'TempoAcomodacao(s)'});
-% T_total = [T_total; T];  % Concatenar na vertical
 
  f = figure;
 
@@ -134,12 +129,11 @@ exportgraphics(f, './Resultados/Observador.pdf', 'ContentType', 'vector');
 %% Projeto do Observador com filtro de kallman
 
 Q_k = 0.1 * eye(1); % Aumentar Q em relação a R: 
-R_k = 250 * eye(1); % Aumentar R em relação a Q: 
+R_k = 200 * eye(1); % Aumentar R em relação a Q: 
 
 [kalmf, L_k, P] = kalman(sys, Q_k, R_k);
 
 [y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys_d, K, Ki, L_k*Ts, N, Ts, R);
-
 
  f = figure;
 
@@ -195,7 +189,7 @@ R_k = 250 * eye(1); % Aumentar R em relação a Q:
     legend({'$e[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
     grid on;
 
-sgtitle(sprintf('Analise do Observador projetado via filtro de Kalman: ($L_k = %g$, $Q_k = %g$, $R_k = %g$)', round(L_k, 3), Q_k, R_k), 'Interpreter', 'latex');
+sgtitle(sprintf('Analise do Observador (Kalman): ($L_k = %g$, $Q_k = %g$, $R_k = %g$)', round(L_k, 3), Q_k, R_k), 'Interpreter', 'latex');
 
 % Exporta tudo em um único PDF
 exportgraphics(f, './Resultados/ObservadorKalman.pdf', 'ContentType', 'vector');

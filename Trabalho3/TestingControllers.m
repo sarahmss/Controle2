@@ -1,7 +1,10 @@
+close all
+clear all
+clc
 %% Definição do sistema
-a = 10.4167;
+a = 7.8125;
 s = tf('s');
-Kp = 595;
+Kp = 621;
 Ts = 0.008; % Período de amostragem (Ts = 8ms)
 Gp = a * Kp /(s+a);
 Gp_zpk = zpk(Gp);
@@ -12,14 +15,48 @@ dados = readtable('./Remodelando/saida-156.csv');
 
 t8ms = 1:(length(dados.Tempo)/2.5);
 t8ms = t8ms * 8e-3;
+%% Discretização do sistema 
+n = size(Ac);
+Aeuler =  eye(n) + Ts * sys.A; 
+Beuler =  Ts * sys.B;
+Ceuler = sys.C;
+Deuler = sys.D;
+sys_euler = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
+
+sistemas_list = {sys, sys_euler};
+nomes_sistemas = {'Contínuo', 'Euler'};  % nomes para exibição
+n = numel(sistemas_list);
+
+% Inicializa células para os dados da tabela
+SistemaCell = cell(n,1);
+ACell = cell(n,1);
+BCell = cell(n,1);
+CCell = cell(n,1);
+DCell = cell(n,1);
+
+for i = 1:n
+    s = sistemas_list{i};
+    SistemaCell{i} = nomes_sistemas{i};
+    ACell{i} = mat2str(s.A, 4);
+    BCell{i} = mat2str(s.B, 4);
+    CCell{i} = mat2str(s.C, 4);
+    DCell{i} = mat2str(s.D, 4);
+end
+
+% Cria a tabela
+T = table(SistemaCell, ACell, BCell, CCell, DCell, ...
+    'VariableNames', {'Sistema', 'A', 'B', 'C', 'D'});
+
+% Exporta para CSV
+writetable(T, 'sistemas.csv');
+
+disp(T);
 
 %% LQI
 
-% K_q_values = [0.1, 1, 0.75, 1.5]; 
-% K_r_values = [0.5, 1, 0.5, 3];  
+K_q_values = [0.1, 0.1, 2, 0.825]; 
+K_r_values = [20, 0.1, 0.1, 38];  
 
-K_q_values = [0.1]; 
-K_r_values = [20];  
 T_total = table();
 
 for i = 1:length(K_q_values)
@@ -47,15 +84,8 @@ for i = 1:length(K_q_values)
     
     sys_cl = ss(A_cl, B_cl, C_cl, D_cl);
     % Discretização do sisteman
-    n = size(Ac);
     N = length(t8ms);
     R = 595;
-    
-    Aeuler =  eye(n) + Ts * sys.A; 
-    Beuler =  Ts * sys.B;
-    Ceuler = sys.C;
-    Deuler = sys.D;
-    sys_euler = ss(Aeuler, Beuler, Ceuler, Deuler, Ts);
     
     t = t8ms;
     u = ones(size(t)); % Degrau unitário
@@ -75,8 +105,8 @@ for i = 1:length(K_q_values)
     QR_label = sprintf('Q=%.2f; R=%.2f', Q_c, R_c);
     
     % Criação da Tabela
-    T = table({QR_label}, overshoot, settlingTime, ...
-        'VariableNames', {'Q_R', 'Ultrapassagem(%)', 'TempoAcomodacao(s)'});
+    T = table({QR_label}, K, Ki,overshoot, settlingTime, ...
+        'VariableNames', {'Q_R', 'K', 'Ki', 'Ultrapassagem(%)', 'TempoAcomodacao(s)'});
     T_total = [T_total; T];  % Concatenar na vertical
 
     f = figure;
@@ -144,6 +174,8 @@ for i = 1:length(K_q_values)
     % Exporta tudo em um único PDF
     exportgraphics(f, sprintf('./Resultados/AnaliseDoControlador_Q%g_R%g.pdf', Q_c, R_c), 'ContentType', 'vector');
 end
+
+
 
 % Exibição no console
 disp('== Comparação de Desempenho ==');

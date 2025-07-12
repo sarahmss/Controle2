@@ -1,8 +1,7 @@
 close all
-clear all
 clc
 
-%% Modelo do circuito elétrico 
+%% Sistema em malha aberta
 a = 10.4167;
 s = tf('s');
 Kp = 595;
@@ -13,6 +12,25 @@ Gp_zpk = zpk(Gp); % forma fatorada
 [Ac, Bc, Cc, Dc] = tf2ss(num, den); % conversão para espaço de estados
 
 sys = ss(Ac, Bc, Cc, Dc); % sistema contínuo
+
+%% Sistema em malha fechada
+Q_c = 0.1 * eye(1); % Aumentar Q em relação a R: x(t)->0 mais rapidamente esforço de controle u(t) maior
+R_c = 20 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a uma resposta superamortecida 
+
+% Por função LQI e sistema expandido
+[Ke, Se, Pe] = lqi(sys, Q_c, R_c);
+K  = Ke(1:end-1);
+Ki = -Ke(end);
+
+% Sistema em malha fechada com integrador
+A_cl = [Ac - Bc*K, Bc*Ki;
+            -Cc      ,  0];
+
+B_cl = [0; 1];  % Entrada de referência
+C_cl = [Cc 0];
+D_cl = 0;
+
+sys_cl = ss(A_cl, B_cl, C_cl, D_cl);
 
 %% Discretização
 Ts = 0.008; % período de amostragem

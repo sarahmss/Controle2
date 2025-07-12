@@ -1,25 +1,20 @@
 % Lê o arquivo CSV
-% dadosEuler = readtable('./saidas-earlystart_smallchanges.csv');
-% dadosZOH = readtable('./saidasZOH-earlystart_smallchanges.csv');
-% dadosEuler = readtable('./saidas-earlystart_bigchanges.csv');
-% dadosZOH = readtable('./saidasZOH-earlystart_bigchanges.csv');
-dadosEuler = readtable('./saidas-earlystart_superbigchanges.csv');
-dadosZOH = readtable('./saidas-earlystart_superbigchanges.csv');
+dadosEuler = readtable('./Saida/saidas-limite-inf10.csv');
 
-c = 3;
+c = 1;
 
 if c==1
-    ref2 = 610;
-    ref3 = 580;
+    ref2 = 670;
+    ref3 = 570;
 elseif c==2
     ref2 = 650;
     ref3 = 550;
 elseif c==3
-    ref2 = 700;
+    ref2 = 671;
     ref3 = 500;
 end
 
-ref1 = 595;
+ref1 = 620;
 
 t8ms = 1:length(dadosEuler.Tempo);
 t8ms = t8ms * 8e-3;
@@ -29,7 +24,6 @@ tempo   = t8ms; % Conversão se Tempo estiver em índices
 % xhat    = dados.xhat;           % Caso exista essa coluna
 % erro    = dados.Erro;
 saidaEuler   = dadosEuler.Saida;
-saidaZOH   = dadosZOH.Saida;
 
 % Cria a figura com 4 subplots verticais
 f = figure('Name', 'Resposta do Sistema com Controle', 'NumberTitle', 'off');
@@ -58,17 +52,16 @@ f = figure('Name', 'Resposta do Sistema com Controle', 'NumberTitle', 'off');
 % Subplot 4 - Saída
 %subplot(4,1,4);
 hold on;
-plot(tempo, saidaZOH, 'g:', 'LineWidth', 1.5,'DisplayName','ZOH');
 plot(tempo, saidaEuler, 'r', 'LineWidth', 1,'DisplayName','Euler');
 legend off;
 ylim([400 800]);
 xlabel('$Tempo [s]$', 'Interpreter', 'latex');
 ylabel('$y(t)$', 'Interpreter', 'latex');
-title('Saida y(t) para grandes variações', 'Interpreter', 'latex');
+title('Saida $y(t)$, $R_c=6$; $Q_c=0.1$; $L_k=0.039$', 'Interpreter', 'latex');
 yline(ref1, '--','Color','#F92412', 'LineWidth', 1, 'DisplayName',num2str(ref1));
 yline(ref2, '--', 'Color', '#FA6800' ,'LineWidth', 1, 'DisplayName',num2str(ref2));
 yline(ref3, '--', 'Color', '#E4FA00','LineWidth', 1, 'DisplayName',num2str(ref3));
 legend;
 grid on;
 
-exportgraphics(f, './saida_superbigchanges.pdf', 'ContentType', 'vector');
+exportgraphics(f, './Resultados/Rmaior/saida_limite-inf-10.pdf', 'ContentType', 'vector');
