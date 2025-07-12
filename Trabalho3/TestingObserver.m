@@ -32,6 +32,12 @@ R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a 
     
     sys_cl = ss(A_cl, B_cl, C_cl, D_cl);
 
+    t = t8ms;
+    u = ones(size(t)); % Degrau unitário
+    
+    % Respostas em malha fechada dos sistemas
+    [y_cl, time_cl, x_cl] = lsim(sys_cl, u, t);    
+
     % Discretização do sistema
     n = size(Ac);
     N = length(t8ms);
@@ -45,7 +51,8 @@ R_c = 2.0 * eye(1); % Aumentar R em relação a Q: u(t) é menor e x(t) tende a 
     
 
 %%  Projeto do Observador
-info = stepinfo(y_euler,     t);
+
+info = stepinfo(y_euler, t);
 ts = info.SettlingTime;
 up = info.Overshoot;
 
@@ -55,7 +62,7 @@ wn_obs = 4/(qsi*Ts_obs); % Calcula a frequência natural
 polo_o = qsi*wn_obs
 L = -place(Ac', Cc', polo_o)'
 
-[y_euler_cl, e_log_euler, e_hat_euler, u_euler, y_hat_euler, x_hat_euler] = ApplyControllerAndObserver(sys_euler, K, Ki, L, N, Ts, R);
+[y_euler_cl, e_log_euler, e_hat_euler, u_euler, y_hat_euler, x_hat_euler, x_log] = ApplyControllerAndObserver(sys_euler, K, Ki, L*Ts, N, Ts, R);
 
 
  f = figure;
@@ -71,7 +78,10 @@ L = -place(Ac', Cc', polo_o)'
     % --- Subplot 1: Estado observado xk
     subplot(2,3,4);
     hold on;
-    plot(t, x_hat_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, x_cl * R, 'k-', 'LineWidth', 1.5);
+    plot(t, x_log, 'y:', 'LineWidth', 1.5);
+    plot(t, x_hat_euler, 'b:', 'LineWidth', 1.5);
+
     hold off;
     title('Estado estimado: $\hat{x}[k]$', 'Interpreter', 'latex');
     xlabel('Iteração [k]');
@@ -102,7 +112,8 @@ L = -place(Ac', Cc', polo_o)'
     subplot(2,2,2);
     hold on;
     plot(t, y_cl * R, 'k-', 'LineWidth', 2, 'DisplayName', 'Contínuo');
-    plot(t, y_euler, 'b-', 'LineWidth', 1.5);
+    plot(t, y_euler_cl, 'y:', 'LineWidth', 1.5);
+    plot(t, y_hat_euler, 'b-', 'LineWidth', 1.5);
     xlabel('Iteração [k]');
     ylabel('y[k]');
     title('Saida $y[k]$', 'Interpreter', 'latex');

@@ -1,4 +1,4 @@
-function [y_log, e_log, e_hat_log, u_log, y_hat_log, x_hat_log] = ApplyControllerAndObserver(sys, K, Ki, L, N,  Ts, R)
+function [y_log, e_log, e_hat_log, u_log, y_hat_log, x_hat_log, x_log] = ApplyControllerAndObserver(sys, K, Ki, L, N,  Ts, R)
 % Aplica simultaneamente o controlador com ação integral e o observador
 % sys       : sistema em espaço de estados (discretizado)
 % K         : ganho da realimentação de estados

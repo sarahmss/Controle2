@@ -18,8 +18,6 @@ t8ms = t8ms * 8e-3;
 K_q_values = [0.1, 1, 0.75, 1.2];  % Ex: menor -> mais devagar; maior -> mais agressivo
 K_c_values = [0.5, 1, 0.5, 2];  % Ex: menor -> menos penalização do controle; maior -> mais economia no esforço de controle
 
-T_total = table();
-
 for i = 1:length(K_q_values)
     K_q = K_q_values(i);
     K_c = K_c_values(i);
@@ -63,19 +61,15 @@ for i = 1:length(K_q_values)
     [y_euler, u_euler, x_euler, e_euler, xn_euler] = ApplyController(sys_euler, K, Ki, N, Ts, R);
     % Resultados
     
-    % === Cálculo das especificações de desempenho ===
-    info_euler  = stepinfo(y_euler, t);
+    info_euler  = stepinfo(y_euler_cl,    t);
+    % === 4. Criação da Tabela Final ===
+    T = table(Method, SistemasStr, Overshoot, SettlingTime, ...
+        'VariableNames', {'Método', 'Sistema', 'Ultrapassagem(%)', 'TempoAcomodação(s)'});
     
-    overshoot = info_euler.Overshoot;
-    settlingTime = info_euler.SettlingTime;
-    
-    % String para exibir Q e R
-    QR_label = sprintf('Q=%.2f; R=%.2f', Q_c, R_c);
-    
-    % Criação da Tabela
-    T = table({QR_label}, overshoot, settlingTime, ...
-        'VariableNames', {'Q_R', 'Ultrapassagem(%)', 'TempoAcomodacao(s)'});
-    T_total = [T_total; T];  % Concatenar na vertical
+    % === 5. Exibição ===
+    disp('== Comparação de Desempenho ==');
+    disp(T);
+
 
     f = figure;
     % --- Subplot 1: Sinal de Controle u[k]
@@ -142,7 +136,3 @@ for i = 1:length(K_q_values)
     % Exporta tudo em um único PDF
     exportgraphics(f, sprintf('./Resultados/AnaliseDoControlador_Q%g_R%g.pdf', Q_c, R_c), 'ContentType', 'vector');
 end
-
-% Exibição no console
-disp('== Comparação de Desempenho ==');
-disp(T_total);
