@@ -61,11 +61,19 @@ disp(T);
 % K_q_values = [5, 10, 20, 30];  
 
 %% Sintonia de Q e R: variando R e Q fixo
-C_q_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]; 
-C_r_values = [5, 6, 7, 8, 9, 10, 20, 30, 40, ];  
+% C_q_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]; 
+% C_r_values = [5, 6, 7, 8, 9, 10, 20, 30, 40, ];  
+% 
+% K_q_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]; 
+% K_r_values = [50, 60, 70, 80, 90, 100, 200, 300, 400]; 
 
-K_q_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]; 
-K_r_values = [50, 60, 70, 80, 90, 100, 200, 300, 400]; 
+
+C_q_values = [0.1]; 
+C_r_values = [6];  
+
+K_q_values = [0.1]; 
+K_r_values = [60]; 
+
 
 %%
 
@@ -186,68 +194,8 @@ wn_obs = 4/(qsi*Ts_obs); % Calcula a frequência natural
 polo_o = qsi*wn_obs
 L_o = -place(Ac', Cc', polo_o)';
 
+[y_log_obs, e_log_obs, e_hat_obs, u_obs, y_hat_obs, x_hat_obs, x_log_obs] =  ApplyControllerAndObserver(sys_euler, K, Ki, L_o*Ts, N, Ts, R);
 
-[y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys_euler, K, Ki, L_o*Ts, N, Ts, R);
-
-%% Figura do observador
- f = figure;
-
-    % --- Subplot 1: Sinal de Controle u[k]
-    subplot(2,2,1);
-    hold on;
-    plot(t, u, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('u[k]');
-    title('Sinal de Controle $u[k]$', 'Interpreter', 'latex');
-    legend({'$u[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 2: Saida
-    subplot(2,2,2);
-    hold on;
-    plot(t, y_log, 'b-', 'LineWidth', 1.5);
-    plot(t, y_hat, 'g:', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('y[k]');
-    title('Saida $y[k]$', 'Interpreter', 'latex');
-    legend({'$y[k]$', '$\hat{y}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 3: Estado observado xk
-    subplot(2,3,4);
-    hold on;
-    plot(t, x_log, 'b-', 'LineWidth', 1.5);
-    plot(t, x_hat, 'g:', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$\hat{x}[k]$, $x[k]$', 'Interpreter', 'latex');
-    title('$\hat{x}[k]$ vs $x[k]$', 'Interpreter', 'latex');
-    legend({'$x[k]$', '$\hat{x}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 4: Erro de estimativa
-    subplot(2,3,5);
-    hold on;
-    plot(t, e_hat, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
-    title('Erro de estimativa: $\hat{e}[k]$', 'Interpreter', 'latex');
-    legend({'$\hat{e}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 5: Erro real
-    subplot(2,3,6);
-    hold on;
-    plot(t, e_log, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$e[k]$', 'Interpreter', 'latex');
-    title('Erro $e[k]$', 'Interpreter', 'latex');
-    legend({'$e[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-
-sgtitle(sprintf('Analise do Observador: ($L_o = %g$ $Q_c = %g$, $R_c = %g$)', round(L_o, 3), Q_c, R_c), 'Interpreter', 'latex');
-
-% Exporta tudo em um único PDF
-exportgraphics(f, sprintf('./Resultados/Observador_L_%g.pdf', round(L_o, 3)), 'ContentType', 'vector');
 
 %% Filtro de kalman
     K_q = K_q_values(i);
@@ -256,68 +204,53 @@ exportgraphics(f, sprintf('./Resultados/Observador_L_%g.pdf', round(L_o, 3)), 'C
     Q_k = K_q * eye(1); % Aumentar Q em relação a R: 
     R_k = K_r * eye(1); % Aumentar R em relação a Q: 
     
-    [kalmf, L_k, P] = kalman(sys, Q_k, R_k);
-%% Figura Kalman
-[y_log, e_log, e_hat, u, y_hat, x_hat, x_log] = ApplyControllerAndObserver(sys_euler, K, Ki, L_k*Ts, N, Ts, R);
+    [kalmf, L_k, P] = kalman(sys, Q_k, R_k); 
 
- f = figure;
+[y_log_kalman, e_log_kalman, e_hat_kalman, u_kalman, y_hat_kalman, x_hat_kalman, x_log_kalman] = ApplyControllerAndObserver(sys_euler, K, Ki, L_k*Ts, N, Ts, R);
+%%
+f = figure;
 
-    % --- Subplot 1: Sinal de Controle u[k]
-    subplot(2,2,1);
-    hold on;
-    plot(t, u, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('u[k]');
-    title('Sinal de Controle $u[k]$', 'Interpreter', 'latex');
-    legend({'$u[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 2: Saida
-    subplot(2,2,2);
-    hold on;
-    plot(t, y_log, 'b-', 'LineWidth', 1.5);
-    plot(t, y_hat, 'g:', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('y[k]');
-    title('Saida $y[k]$', 'Interpreter', 'latex');
-    legend({'$y[k]$', '$\hat{y}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 3: Estado observado xk
-    subplot(2,3,4);
-    hold on;
-    plot(t, x_log, 'b-', 'LineWidth', 1.5);
-    plot(t, x_hat, 'g:', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$\hat{x}[k]$, $x[k]$', 'Interpreter', 'latex');
-    title('$\hat{x}[k]$ vs $x[k]$', 'Interpreter', 'latex');
-    legend({'$x[k]$', '$\hat{x}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 4: Erro de estimativa
-    subplot(2,3,5);
-    hold on;
-    plot(t, e_hat, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
-    title('Erro de estimativa: $\hat{e}[k]$', 'Interpreter', 'latex');
-    legend({'$\hat{e}[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
-    
-    % --- Subplot 5: Erro real
-    subplot(2,3,6);
-    hold on;
-    plot(t, e_log, 'b-', 'LineWidth', 1.5);
-    xlabel('Iteração [k]');
-    ylabel('$e[k]$', 'Interpreter', 'latex');
-    title('Erro $e[k]$', 'Interpreter', 'latex');
-    legend({'$e[k]$'}, 'Interpreter', 'latex', 'Location', 'best');
-    grid on;
+% --- 1. Saída y[k] e y_hat
+subplot(3,1,1); hold on;
+plot(t, y_log_obs, 'k-', 'LineWidth', 1.5);       % Real (referência)
+plot(t, y_hat_obs, 'b--', 'LineWidth', 1.5);      % Estimado - observador
+plot(t, y_hat_kalman, 'r:', 'LineWidth', 1.5);    % Estimado - Kalman
+xlabel('Iteração [k]');
+ylabel('$y[k]$', 'Interpreter', 'latex');
+title('Saida estimada $\hat{y}[k]$', 'Interpreter', 'latex');
+legend({'$y[k]$', '$\hat{y}[k]$ Obs.', '$\hat{y}[k]$ Kalman'}, ...
+       'Interpreter', 'latex', 'Location', 'best');
+grid on;
 
-sgtitle(sprintf('Analise do Observador (Kalman): ($L_k = %g$, $Q_k = %g$, $R_k = %g$)', round(L_k, 3), Q_k, R_k), 'Interpreter', 'latex');
+% --- 2. Estado x[k] e x_hat
+subplot(3,1,2); hold on;
+plot(t, x_log_obs, 'k-', 'LineWidth', 1.5);       % Estado real
+plot(t, x_hat_obs, 'b--', 'LineWidth', 1.5);      % Estimado - observador
+plot(t, x_hat_kalman, 'r:', 'LineWidth', 1.5);    % Estimado - Kalman
+xlabel('Iteração [k]');
+ylabel('$x[k]$', 'Interpreter', 'latex');
+title('Estado estimado $\hat{x}[k]$', 'Interpreter', 'latex');
+legend({'$x[k]$', '$\hat{x}[k]$ Obs.', '$\hat{x}[k]$ Kalman'}, ...
+       'Interpreter', 'latex', 'Location', 'best');
+grid on;
 
-% Exporta tudo em um único PDF
-exportgraphics(f, sprintf('./Resultados/ObservadorKalman_Lk_%g.pdf', round(L_k, 3)), 'ContentType', 'vector');
+% --- 3. Erro de estimativa
+subplot(3,1,3); hold on;
+plot(t, e_hat_obs, 'b--', 'LineWidth', 1.5);      % Erro - observador
+plot(t, e_hat_kalman, 'r:', 'LineWidth', 1.5);    % Erro - Kalman
+xlabel('Iteração [k]');
+ylabel('$\hat{e}[k]$', 'Interpreter', 'latex');
+title('Erro de estimativa $\hat{e}[k]$', 'Interpreter', 'latex');
+legend({'$\hat{e}[k]$ Obs.', '$\hat{e}[k]$ Kalman'}, ...
+       'Interpreter', 'latex', 'Location', 'best');
+grid on;
+
+% --- Título geral
+sgtitle(sprintf('Observador vs Kalman \n($Q_c = %.2f$, $R_c = %.2f$ | $L_o = %.3f$, $L_k = %.3f$)', ...
+        Q_c, R_c, L_o, L_k), 'Interpreter', 'latex');
+
+% Exporta como PDF vetorial
+exportgraphics(f, sprintf('./Resultados/CompObsKalman_%.2f_%.2f.pdf', Q_c, R_c), 'ContentType', 'vector');
 
 %%  Cálculo das especificações de desempenho 
     info_euler  = stepinfo(y_euler, t);

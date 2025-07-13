@@ -31,7 +31,7 @@ for i = 1:length(arquivos_ordenados)
     t = (1:length(saida)) * 8e-3;
 
     % Nome para legenda (ex: 'lim = 50')
-    legenda = sprintf('lim = %d', lim(idx_ordenado(i)));
+    legenda = sprintf('R_c = %d', lim(idx_ordenado(i)));
     plot(t, saida, 'Color', cores(i,:), 'LineWidth', 1.2, 'DisplayName', legenda);
 end
 
@@ -43,8 +43,8 @@ yline(ref3, '--', 'Color', '#E4FA00', 'LineWidth', 1.2, 'DisplayName', sprintf('
 % Ajustes finais do gráfico
 xlabel('$Tempo\ [s]$', 'Interpreter', 'latex');
 ylabel('$y(t)$', 'Interpreter', 'latex');
-title('Saída $y(t)$ com variação de limiar', 'Interpreter', 'latex');
-legend('show', 'Location', 'bestoutside');
+title('Testando limite inferior de sintonia de $R_c$', 'Interpreter', 'latex');
+legend('show', 'Location', 'best');
 grid on;
 ylim([400 800]);
 
